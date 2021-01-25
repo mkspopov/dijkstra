@@ -41,7 +41,7 @@ EdgeId Graph::EdgesCount() const {
     return edges_.size();
 }
 
-Graph GraphBuilder::Build() {
+Graph&& GraphBuilder::Build() {
     assert(!built_);
     built_ = true;
     return std::move(graph_);
@@ -49,4 +49,17 @@ Graph GraphBuilder::Build() {
 
 Edge::Edge(VertexId to)
     : to(to) {
+}
+
+Graph Graph::Reversed() const {
+    GraphBuilder builder;
+    for (size_t i = 0; i < adjacencyList_.size(); ++i) {
+        builder.AddVertex();
+    }
+    for (size_t from = 0; from < adjacencyList_.size(); ++from) {
+        for (const auto edgeId : GetOutgoingEdges(from)) {
+            builder.AddEdge(GetTarget(edgeId), from, edgeProperties_[edgeId]);
+        }
+    }
+    return builder.Build();
 }

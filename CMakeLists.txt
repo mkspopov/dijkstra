@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.17)
 project(dijkstra)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -Wall -Werror -Wextra")
 
 add_executable(
     dijkstra
@@ -15,4 +15,5 @@ add_executable(
     graph/serializer.h
     utils.cpp
     utils.h
-        algorithms/dijkstra.cpp algorithms/dijkstra.h algorithms/heap.h)
+    algorithms/dijkstra.cpp
+    algorithms/visitor.cpp)

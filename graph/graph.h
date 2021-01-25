@@ -5,13 +5,10 @@
 #ifndef DIJKSTRA_GRAPH_H
 #define DIJKSTRA_GRAPH_H
 
+#include "../types.h"
 #include "../utils.h"
 
 #include <vector>
-
-using EdgeId = int;
-using VertexId = int;
-using Weight = float;
 
 struct Edge {
     Edge(VertexId to);
@@ -38,6 +35,8 @@ public:
 
     EdgeId EdgesCount() const;
 
+    Graph Reversed() const;
+
 private:
     friend class GraphBuilder;
 
@@ -54,7 +53,7 @@ public:
 
     EdgeId AddEdge(VertexId from, VertexId to, EdgeProperty properties);
 
-    Graph Build();
+    Graph&& Build();
 
 private:
     Graph graph_;

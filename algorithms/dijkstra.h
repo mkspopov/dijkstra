@@ -7,75 +7,82 @@
 
 #include "heap.h"
 #include "../graph/graph.h"
+#include "visitor.h"
 
+#include <algorithm>
 #include <cassert>
 #include <limits>
 #include <unordered_set>
 #include <vector>
 
 class Dijkstra {
+public:
     static constexpr Weight INF = std::numeric_limits<Weight>::infinity();
     static constexpr Weight START_WEIGHT = 0;
-
-public:
-    struct HeapElement {
-        HeapElement(VertexId vertex, Weight weight)
-            : vertex(vertex)
-            , weight(weight) {
-        }
-
-        bool operator>(const HeapElement& rhs) const {
-            if (weight == rhs.weight) {
-                return vertex > rhs.vertex;
-            }
-            return weight > rhs.weight;
-        }
-
-        VertexId vertex;
-        Weight weight;
-    };
+    static constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
 
     explicit Dijkstra(const Graph& graph)
-            : graph_(graph)
-            , distances_(graph_.VerticesCount(), INF) {
+        : graph_(graph)
+    {
+    }
+
+//    Dijkstra(const Graph& graph, Visitor& visitor)
+//        : graph_(graph)
+//        , visitor_(visitor) {
+//    }
+
+    auto AffectedVertices() {
+        return IteratorRange(affectedVertices_.begin(), affectedVertices_.end());
+    }
+
+    void Preprocess() {
+        distances_.resize(graph_.VerticesCount(), INF);
         affectedVertices_.reserve(graph_.VerticesCount());
     }
 
     void FindShortestPathsWeights(VertexId source) {
-        Clear();
-
-        DiscoverVertex(source);
-        distances_[source] = START_WEIGHT;
-        heap_.emplace(source, START_WEIGHT);
-
+        InitSearch(source);
         while (!heap_.empty()) {
             const auto [from, fromDistance] = heap_.top();
-            heap_.pop();
-            ExamineVertex(from);
+            ProcessVertex(from, fromDistance);
+        }
+    }
 
-            if (fromDistance > distances_[from]) {
-                continue;
-            }
-            assert(fromDistance == distances_[from]);
+    VertexId ProcessVertex() {
+        if (heap_.empty()) {
+            return UNDEFINED_VERTEX;
+        }
+        const auto [from, fromDistance] = heap_.top();
+        ProcessVertex(from, fromDistance);
+        return from;
+    }
 
-            for (const auto edgeId : graph_.GetOutgoingEdges(from)) {
-                ExamineEdge(edgeId);
+    void ProcessVertex(const int from, const float fromDistance) {
+        heap_.pop();
+        ExamineVertex(from);
 
-                const auto to = graph_.GetTarget(edgeId);
-                const auto edgeWeight = graph_.GetEdgeProperties(edgeId).weight;
-                const auto distance = fromDistance + edgeWeight;
+        if (fromDistance > distances_[from]) {
+            return;
+        }
+        assert(fromDistance == distances_[from]);
 
-                if (!IsVisited(to)) {
-                    DiscoverVertex(to);
-                    distances_[to] = distance;
-                    heap_.emplace(to, distance);
-                } else if (distances_[to] > distance) {
-                    distances_[to] = distance;
-                    heap_.emplace(to, distance);
-                    RelaxEdge(edgeId);
-                } else {
-                    NotRelaxed(edgeId);
-                }
+        for (const auto edgeId : graph_.GetOutgoingEdges(from)) {
+            ExamineEdge(edgeId);
+
+            const auto to = graph_.GetTarget(edgeId);
+            const auto edgeWeight = graph_.GetEdgeProperties(edgeId).weight;
+            const auto distance = fromDistance + edgeWeight;
+
+            if (!IsVisited(to)) {
+                DiscoverVertex(to);
+                distances_[to] = distance;
+                heap_.emplace(to, distance);
+            } else if (distances_[to] > distance) {
+                distances_[to] = distance;
+                heap_.emplace(to, distance);
+                RelaxEdge(edgeId);
+            } else {
+                NotRelaxed(edgeId);
             }
         }
     }
@@ -98,12 +105,22 @@ public:
         return distances_[target];
     }
 
+    void InitSearch(VertexId source) {
+        Clear();
+
+        DiscoverVertex(source);
+        distances_[source] = START_WEIGHT;
+        heap_.emplace(source, START_WEIGHT);
+    }
+
 private:
-    void NotRelaxed(EdgeId edgeId) {
+    void NotRelaxed(EdgeId ) {
     }
-    void RelaxEdge(EdgeId edgeId) {
+
+    void RelaxEdge(EdgeId ) {
     }
-    void ExamineEdge(EdgeId edgeId) {
+
+    void ExamineEdge(EdgeId ) {
     }
 
     void ExamineVertex(VertexId vertex) {
@@ -118,6 +135,7 @@ private:
     }
 
     void DiscoverVertex(VertexId vertex) {
+//        visitor_.DiscoverVertex(vertex);
         affectedVertices_.push_back(vertex);
     }
 
@@ -139,6 +157,8 @@ private:
     Heap<HeapElement> heap_;
 
     std::unordered_set<VertexId> targets_;
+
+//    Visitor& visitor_;
 };
 
 #endif //DIJKSTRA_DIJKSTRA_H
