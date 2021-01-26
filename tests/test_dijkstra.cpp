@@ -72,7 +72,15 @@ void TestBidirectionalDijkstra() {
     }
 }
 
+#define RUN_TEST(test_function) \
+    std::cerr << "Running " << #test_function << " ...\n"; \
+    (test_function)(); \
+    std::cerr << "Done " << #test_function << "\n"; \
+
+
 int main() {
-    TestDijkstra();
-    TestBidirectionalDijkstra();
+    std::cerr << "Running tests ...\n";
+    RUN_TEST(TestDijkstra);
+    RUN_TEST(TestBidirectionalDijkstra);
+    std::cerr << "Done tests.\n";
 }
