@@ -13,6 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: update
+      run: |
+        sudo apt-get update
+    - name: install_dependencies
+      run: |
+        sudo apt libboost-all-dev
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
 
