@@ -14,6 +14,14 @@
         throw std::runtime_error("Assertion failed: " + exprStr); \
     }                      \
 
+#define RUN_TEST(test_function) \
+    {                            \
+    std::cerr << "Running " << #test_function << " ...\n"; \
+    Timer timer;                            \
+    test_function(); \
+    std::cerr << "Done " << #test_function << " in " << timer.Elapsed() / 1'000'000 << "ms\n"; \
+    }
+
 template <class Iterator>
 class IteratorRange {
 public:

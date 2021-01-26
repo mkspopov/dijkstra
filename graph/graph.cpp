@@ -47,6 +47,10 @@ Graph&& GraphBuilder::Build() {
     return std::move(graph_);
 }
 
+GraphBuilder::GraphBuilder(VertexId verticesCount) {
+    graph_.adjacencyList_.resize(verticesCount);
+}
+
 Edge::Edge(VertexId to)
     : to(to) {
 }

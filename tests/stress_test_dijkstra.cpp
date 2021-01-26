@@ -69,14 +69,6 @@ void TestBidirectionalDijkstra() {
     }
 }
 
-#define RUN_TEST(test_function) \
-    {                            \
-    std::cerr << "Running " << #test_function << " ...\n"; \
-    Timer timer;                            \
-    test_function(); \
-    std::cerr << "Done " << #test_function << " in " << timer.Elapsed() / 1'000'000 << "ms\n"; \
-    }
-
 int main() {
     std::cerr << "Running tests ...\n";
     RUN_TEST(TestDijkstra);

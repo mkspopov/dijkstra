@@ -6,9 +6,17 @@ find_package(Boost 1.71.0 REQUIRED COMPONENTS graph)
 
 include_directories(${Boost_INCLUDE_DIRS})
 add_executable(
-    tests
-    test_dijkstra.cpp
+    stress_tests
+    stress_test_dijkstra.cpp
 )
 
-target_link_libraries(tests ${Boost_LIBRARIES})
-target_link_libraries(tests algorithms)
+add_executable(
+    unit_tests
+    test_hierarchical_dijkstra.cpp
+)
+
+target_link_libraries(stress_tests ${Boost_LIBRARIES})
+target_link_libraries(stress_tests algorithms)
+
+target_link_libraries(unit_tests ${Boost_LIBRARIES})
+target_link_libraries(unit_tests algorithms)

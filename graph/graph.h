@@ -49,6 +49,8 @@ class GraphBuilder {
 public:
     GraphBuilder() = default;
 
+    explicit GraphBuilder(VertexId verticesCount);
+
     VertexId AddVertex();
 
     EdgeId AddEdge(VertexId from, VertexId to, EdgeProperty properties);
