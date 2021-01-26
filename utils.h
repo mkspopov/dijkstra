@@ -5,6 +5,7 @@
 #ifndef DIJKSTRA_UTILS_H
 #define DIJKSTRA_UTILS_H
 
+#include <chrono>
 #include <iostream>
 
 #define ASSERT(expression) \
@@ -67,5 +68,18 @@ private:
 };
 
 Logger::LineLogger Log();
+
+class Timer {
+public:
+    Timer() : start_(std::chrono::high_resolution_clock::now()) {
+    }
+
+    uint64_t Elapsed() const {
+        return (std::chrono::high_resolution_clock::now() - start_).count();
+    }
+
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> start_;
+};
 
 #endif //DIJKSTRA_UTILS_H

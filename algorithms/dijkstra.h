@@ -30,8 +30,17 @@ public:
         return IteratorRange(affectedVertices_.begin(), affectedVertices_.end());
     }
 
+    bool IsAffected(VertexId vertexId) const {
+        return distances_[vertexId] != INF;
+    }
+
+    bool IsProcessed(VertexId vertexId) const {
+        return isVertexProcessed_[vertexId];
+    }
+
     void Preprocess() {
         distances_.resize(graph_.VerticesCount(), INF);
+        isVertexProcessed_.resize(graph_.VerticesCount(), false);
         affectedVertices_.reserve(graph_.VerticesCount());
     }
 
@@ -52,7 +61,7 @@ public:
         return from;
     }
 
-    void ProcessVertex(const int from, const float fromDistance) {
+    void ProcessVertex(int from, float fromDistance) {
         heap_.pop();
         ExamineVertex(from);
 
@@ -80,6 +89,8 @@ public:
                 NotRelaxed(edgeId);
             }
         }
+
+        isVertexProcessed_[from] = true;
     }
 
     /*
@@ -136,6 +147,7 @@ private:
     void Clear() {
         for (const auto vertex : affectedVertices_) {
             distances_[vertex] = INF;
+            isVertexProcessed_[vertex] = false;
         }
         affectedVertices_.clear();
         ClearHeap();
@@ -148,6 +160,7 @@ private:
     const Graph& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
+    std::vector<char> isVertexProcessed_;  // char is faster than bool.
     Heap<HeapElement> heap_;
 
     std::unordered_set<VertexId> targets_;

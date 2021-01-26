@@ -2,6 +2,7 @@
 #include "../algorithms/dijkstra.h"
 #include "../algorithms/bidirectional_dijkstra.h"
 #include "../graph/serializer.h"
+#include "../utils.h"
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -66,17 +67,19 @@ void TestBidirectionalDijkstra() {
     for (int vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
         ASSERT(bidijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
         if (vertex > 6666) {
-            // TODO: Fasten the algo. Too slow for now.
+            // TODO: Fasten the algo. Too slow for now: 21 sec.
             break;
         }
     }
 }
 
 #define RUN_TEST(test_function) \
+    {                            \
     std::cerr << "Running " << #test_function << " ...\n"; \
-    (test_function)(); \
-    std::cerr << "Done " << #test_function << "\n"; \
-
+    Timer timer;                            \
+    test_function(); \
+    std::cerr << "Done " << #test_function << " in " << timer.Elapsed() / 1'000'000 << "ms\n"; \
+    }
 
 int main() {
     std::cerr << "Running tests ...\n";

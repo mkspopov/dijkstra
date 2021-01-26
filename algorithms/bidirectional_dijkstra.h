@@ -28,20 +28,16 @@ public:
         }
         forward_.InitSearch(source);
         backward_.InitSearch(target);
-        std::unordered_set<VertexId> processedForward;
-        std::unordered_set<VertexId> processedBackward;
 
-        VertexId prevProcessedBackward = target;
         VertexId prevProcessedForward = source;
+        VertexId prevProcessedBackward = target;
         bool isForwardTurn = true;
-        while (!processedForward.contains(prevProcessedBackward) &&
-                !processedBackward.contains(prevProcessedForward)) {
+        while (!forward_.IsProcessed(prevProcessedBackward) &&
+               !backward_.IsProcessed(prevProcessedForward)) {
             if (isForwardTurn) {
                 prevProcessedForward = forward_.ProcessVertex();
-                processedForward.insert(prevProcessedForward);
             } else {
                 prevProcessedBackward = backward_.ProcessVertex();
-                processedBackward.insert(prevProcessedBackward);
             }
             isForwardTurn = !isForwardTurn;
         }
@@ -54,7 +50,7 @@ public:
         for (const auto& from : forward_.AffectedVertices()) {
             for (const auto& edgeId : graph_.GetOutgoingEdges(from)) {
                 const auto to = graph_.GetTarget(edgeId);
-                if (processedBackward.contains(to)) {
+                if (backward_.IsProcessed(to)) {
                     const auto distance = forward_.GetShortestDistance(from) +
                         graph_.GetEdgeProperties(edgeId).weight +
                         backward_.GetShortestDistance(to);
@@ -82,11 +78,11 @@ private:
     Dijkstra forward_;
     Dijkstra backward_;
 
-    std::vector<Weight> distances_;
-    std::vector<VertexId> affectedVertices_;
-    Heap<HeapElement> heap_;
-
-    std::unordered_set<VertexId> targets_;
+//    std::vector<Weight> distances_;
+//    std::vector<VertexId> affectedVertices_;
+//    Heap<HeapElement> heap_;
+//
+//    std::unordered_set<VertexId> targets_;
 };
 
 
