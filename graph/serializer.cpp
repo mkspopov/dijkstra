@@ -31,7 +31,7 @@ Graph GraphDeserializer::DimacsDeserialize() {
         while (verticesCount < std::max(from, to)) {
             const auto prev = verticesCount;
             verticesCount = builder.AddVertex() + 1;
-            assert(prev + 1 == verticesCount);
+            ASSERT(prev + 1 == verticesCount);
         }
         builder.AddEdge(--from, --to, EdgeProperty{distance});
     }

@@ -23,6 +23,9 @@ public:
     }
 
     Weight FindShortestPathWeight(VertexId source, VertexId target) {
+        if (source == target) {
+            return 0;
+        }
         forward_.InitSearch(source);
         backward_.InitSearch(target);
         std::unordered_set<VertexId> processedForward;

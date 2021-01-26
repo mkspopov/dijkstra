@@ -7,6 +7,12 @@
 
 #include <iostream>
 
+#define ASSERT(expression) \
+    if (!(expression)) {   \
+        std::string exprStr(#expression); \
+        throw std::runtime_error("Assertion failed: " + exprStr); \
+    }                      \
+
 template <class Iterator>
 class IteratorRange {
 public:

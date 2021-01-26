@@ -7,13 +7,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -Wall -Werr
 
 add_executable(
     dijkstra
-
     main.cpp
-    graph/graph.cpp
-    graph/graph.h
-    graph/serializer.cpp
-    graph/serializer.h
-    utils.cpp
-    utils.h
-    algorithms/dijkstra.cpp
-    algorithms/visitor.cpp)
+    utils.h utils.cpp
+)
+
+add_subdirectory(algorithms)
+target_link_libraries(dijkstra algorithms)
+
+add_subdirectory(graph)
+target_link_libraries(dijkstra graph)
+
+add_subdirectory(tests)

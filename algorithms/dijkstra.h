@@ -26,11 +26,6 @@ public:
     {
     }
 
-//    Dijkstra(const Graph& graph, Visitor& visitor)
-//        : graph_(graph)
-//        , visitor_(visitor) {
-//    }
-
     auto AffectedVertices() {
         return IteratorRange(affectedVertices_.begin(), affectedVertices_.end());
     }
@@ -99,7 +94,7 @@ public:
     }
 
     /*
-     * Extract the shortest distance after FindShortestPathsWeights.
+     * Get the shortest distance after FindShortestPathsWeights.
      */
     Weight GetShortestDistance(VertexId target) const {
         return distances_[target];
@@ -135,7 +130,6 @@ private:
     }
 
     void DiscoverVertex(VertexId vertex) {
-//        visitor_.DiscoverVertex(vertex);
         affectedVertices_.push_back(vertex);
     }
 
@@ -157,8 +151,6 @@ private:
     Heap<HeapElement> heap_;
 
     std::unordered_set<VertexId> targets_;
-
-//    Visitor& visitor_;
 };
 
 #endif //DIJKSTRA_DIJKSTRA_H

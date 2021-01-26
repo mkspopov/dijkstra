@@ -22,9 +22,9 @@ int main() {
     bidijkstra.Preprocess();
 
     Log() << bidijkstra.FindShortestPathWeight(0, 1)
-          << bidijkstra.FindShortestPathWeight(0, 2)
-          << bidijkstra.FindShortestPathWeight(0, 12)
-          << bidijkstra.FindShortestPathWeight(0, 329);
+        << bidijkstra.FindShortestPathWeight(0, 2)
+        << bidijkstra.FindShortestPathWeight(0, 12)
+        << bidijkstra.FindShortestPathWeight(0, 329);
 
     return 0;
 }
