@@ -18,6 +18,10 @@ struct Edge {
 
 struct EdgeProperty {
     Weight weight;
+
+    bool operator==(const EdgeProperty& rhs) const {
+        return weight == rhs.weight;
+    }
 };
 
 class Graph {

@@ -26,6 +26,13 @@ VertexId GraphBuilder::AddVertex() {
 }
 
 EdgeId GraphBuilder::AddEdge(VertexId from, VertexId to, EdgeProperty properties) {
+
+    for (auto edgeId : graph_.GetOutgoingEdges(from)) {
+        if (graph_.GetTarget(edgeId) == to && graph_.GetEdgeProperties(edgeId) == properties) {
+            return UNDEFINED;
+        }
+    }
+
     const EdgeId edgeId = graph_.edges_.size();
     graph_.edges_.emplace_back(to);
     graph_.edgeProperties_.emplace_back(std::move(properties));

@@ -50,7 +50,7 @@ public:
             return forward_.GetShortestDistance(target);
         }
 
-        if (prevProcessedBackward == Dijkstra::UNDEFINED_VERTEX && prevProcessedForward == Dijkstra::UNDEFINED_VERTEX) {
+        if (prevProcessedBackward == UNDEFINED && prevProcessedForward == UNDEFINED) {
             return Dijkstra::INF;
         }
 
@@ -80,7 +80,7 @@ public:
     }
 
     [[nodiscard]] bool OptimizedForward(VertexId source) const {
-        static VertexId prevSource = Dijkstra::UNDEFINED_VERTEX;
+        static VertexId prevSource = UNDEFINED;
         if (prevSource == source) {
             return true;
         }

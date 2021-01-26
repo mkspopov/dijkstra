@@ -32,8 +32,14 @@ jobs:
       # Execute the build.  You can specify a specific target with "--target <NAME>"
       run: cmake --build . --config $BUILD_TYPE
 
-    - name: Test
+    - name: UnitTest
       working-directory: ${{github.workspace}}/build/tests
       shell: bash
       timeout-minutes: 1
-      run: ./tests
+      run: ./unit_tests
+
+    - name: StressTest
+      working-directory: ${{github.workspace}}/build/tests
+      shell: bash
+      timeout-minutes: 1
+      run: ./stress_tests
