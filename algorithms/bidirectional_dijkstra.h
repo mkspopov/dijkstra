@@ -26,7 +26,11 @@ public:
         if (source == target) {
             return 0;
         }
-        forward_.InitSearch(source);
+        if (!OptimizedForward(source)) {
+            forward_.InitSearch(source);
+        } else if (forward_.IsProcessed(target)) {
+            return forward_.GetShortestDistance(target);
+        }
         backward_.InitSearch(target);
 
         VertexId prevProcessedForward = source;
@@ -40,6 +44,10 @@ public:
                 prevProcessedBackward = backward_.ProcessVertex();
             }
             isForwardTurn = !isForwardTurn;
+        }
+
+        if (forward_.IsProcessed(target)) {
+            return forward_.GetShortestDistance(target);
         }
 
         if (prevProcessedBackward == Dijkstra::UNDEFINED_VERTEX && prevProcessedForward == Dijkstra::UNDEFINED_VERTEX) {
@@ -69,6 +77,15 @@ public:
     }
 
     void Preprocess() {
+    }
+
+    [[nodiscard]] bool OptimizedForward(VertexId source) const {
+        static VertexId prevSource = Dijkstra::UNDEFINED_VERTEX;
+        if (prevSource == source) {
+            return true;
+        }
+        prevSource = source;
+        return false;
     }
 
 private:

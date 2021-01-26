@@ -66,10 +66,6 @@ void TestBidirectionalDijkstra() {
 
     for (int vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
         ASSERT(bidijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
-        if (vertex > 6666) {
-            // TODO: Fasten the algo. Too slow for now: 21 sec.
-            break;
-        }
     }
 }
 
