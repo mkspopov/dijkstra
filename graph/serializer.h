@@ -2,8 +2,7 @@
 // Created by mkspopov on 11.11.2020.
 //
 
-#ifndef DIJKSTRA_SERIALIZER_H
-#define DIJKSTRA_SERIALIZER_H
+#pragma once
 
 #include "graph.h"
 
@@ -19,6 +18,3 @@ public:
 private:
     std::ifstream ifStream_;
 };
-
-
-#endif //DIJKSTRA_SERIALIZER_H

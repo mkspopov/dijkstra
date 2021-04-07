@@ -2,8 +2,7 @@
 // Created by mkspopov on 13.11.2020.
 //
 
-#ifndef DIJKSTRA_SEARCH_ALGORITHM_H
-#define DIJKSTRA_SEARCH_ALGORITHM_H
+#pragma once
 
 #include "../graph/graph.h"
 
@@ -33,6 +32,3 @@ public:
 private:
     Algorithm algorithm_;
 };
-
-
-#endif //DIJKSTRA_SEARCH_ALGORITHM_H

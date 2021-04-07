@@ -2,17 +2,17 @@
 // Created by mkspopov on 11.11.2020.
 //
 
-#ifndef DIJKSTRA_UTILS_H
-#define DIJKSTRA_UTILS_H
+#pragma once
 
 #include <chrono>
 #include <iostream>
 
-#define ASSERT(expression) \
-    if (!(expression)) {   \
+#define ASSERT(expression) do { \
+    if (!(expression)) {       \
         std::string exprStr(#expression); \
         throw std::runtime_error("Assertion failed: " + exprStr); \
-    }                      \
+    }                           \
+    } while (false)             \
 
 #define RUN_TEST(test_function) \
     {                            \
@@ -89,5 +89,3 @@ public:
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;
 };
-
-#endif //DIJKSTRA_UTILS_H

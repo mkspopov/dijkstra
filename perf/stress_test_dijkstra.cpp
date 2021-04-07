@@ -1,6 +1,5 @@
 #include "../algorithms/shortest_path_algorithm.h"
 #include "../algorithms/dijkstra.h"
-#include "../algorithms/dijkstra_prevrun.h"
 #include "../algorithms/bidirectional_dijkstra.h"
 #include "../graph/serializer.h"
 #include "../utils.h"
@@ -47,38 +46,20 @@ const std::vector<float>& CalcDistancesBoost() {
     return d;
 }
 
+constexpr int TESTS = 1000;
+
 void TestDijkstra() {
     const auto& d = CalcDistancesBoost();
 
     ShortestPathAlgorithm<Dijkstra> dijkstra(testGraph);
     dijkstra.Preprocess();
-    dijkstra.FindShortestPathsWeights(0);
 
+    int test = 0;
     for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
-        ASSERT(dijkstra.GetShortestDistance(vertex) == d[vertex]);
-    }
-}
-
-void TestDijkstraPrevRun() {
-    const auto& d = CalcDistancesBoost();
-
-    ShortestPathAlgorithm<PrevRunDijkstra> dijkstra(testGraph);
-    dijkstra.Preprocess();
-    dijkstra.FindShortestPathsWeights(0);
-
-    VertexId target = testGraph.VerticesCount() / 2;
-    while (d[target] == Dijkstra::INF) {
-        --target;
-    }
-
-    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(testGraph);
-    bidijkstra.Preprocess();
-
-    for (VertexId vertex = 0; vertex < testGraph.VerticesCount() / 1000; ++vertex) {
-        auto my = dijkstra.FindShortestPathWeight(vertex, target);
-        auto rightAnswer = bidijkstra.FindShortestPathWeight(vertex, target);
-//        std::cerr << my << ' ' << rightAnswer << std::endl;
-        ASSERT(my == rightAnswer);
+        ASSERT(dijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
+        if (++test >= TESTS) {
+            break;
+        }
     }
 }
 
@@ -88,15 +69,18 @@ void TestBidirectionalDijkstra() {
     ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(testGraph);
     bidijkstra.Preprocess();
 
+    int test = 0;
     for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
         ASSERT(bidijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
+        if (++test >= TESTS) {
+            break;
+        }
     }
 }
 
 int main() {
     std::cerr << "Running tests ...\n";
-//    RUN_TEST(TestDijkstra);
-    RUN_TEST(TestDijkstraPrevRun);
+    RUN_TEST(TestDijkstra);
     RUN_TEST(TestBidirectionalDijkstra);
     std::cerr << "Done tests.\n";
 }

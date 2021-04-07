@@ -2,8 +2,7 @@
 // Created by mkspopov on 11.11.2020.
 //
 
-#ifndef DIJKSTRA_GRAPH_H
-#define DIJKSTRA_GRAPH_H
+#pragma once
 
 #include "../types.h"
 #include "../utils.h"
@@ -65,5 +64,3 @@ private:
     Graph graph_;
     bool built_ = false;
 };
-
-#endif //DIJKSTRA_GRAPH_H

@@ -1,9 +1,10 @@
 //
-// Created by mkspopov on 11.11.2020.
+// Created by mkspopov on 07.04.2021.
 //
 
 #pragma once
 
+#include "dijkstra.h"
 #include "heap.h"
 #include "../graph/graph.h"
 #include "visitor.h"
@@ -11,16 +12,17 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
-class Dijkstra {
+class PrevRunDijkstra {
 public:
     static constexpr Weight INF = std::numeric_limits<Weight>::infinity();
     static constexpr Weight START_WEIGHT = 0;
     static constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
 
-    explicit Dijkstra(const Graph& graph)
+    explicit PrevRunDijkstra(const Graph& graph)
         : graph_(graph)
     {
     }
@@ -33,23 +35,30 @@ public:
         return distances_[vertexId] != INF;
     }
 
-    bool IsProcessed(VertexId vertexId) const {
-        return isVertexProcessed_[vertexId];
-    }
-
     void Preprocess() {
         distances_.resize(graph_.VerticesCount(), INF);
-        isVertexProcessed_.resize(graph_.VerticesCount(), false);
+        parents_.resize(graph_.VerticesCount(), -1);
         affectedVertices_.reserve(graph_.VerticesCount());
     }
 
     Weight FindShortestPathWeight(VertexId source, VertexId target) {
-        InitSearch(source);
+        InitSearch(source, target);
         while (!heap_.empty()) {
             const auto [from, fromDistance] = heap_.top();
+            heap_.pop();
+
             if (from == target) {
                 return fromDistance;
             }
+
+            if (CalculatedOnPreviousRun(from)) {
+                VertexId f = from;
+                distances_[target] = std::min(
+                    distances_[target],
+                    distances_[f] + prevRunDistances_[target] - prevRunDistances_[f]);
+                continue;
+            }
+
             ProcessVertex(from, fromDistance);
         }
         return distances_[target];
@@ -59,21 +68,15 @@ public:
         InitSearch(source);
         while (!heap_.empty()) {
             const auto [from, fromDistance] = heap_.top();
+            heap_.pop();
             ProcessVertex(from, fromDistance);
         }
-    }
-
-    VertexId ProcessVertex() {
-        if (heap_.empty()) {
-            return UNDEFINED_VERTEX;
-        }
-        const auto [from, fromDistance] = heap_.top();
-        ProcessVertex(from, fromDistance);
-        return from;
+        prevRunDistances_ = distances_;
+        prevRunParents_ = parents_;
+        prevRunSource_ = source;
     }
 
     void ProcessVertex(int from, float fromDistance) {
-        heap_.pop();
         ExamineVertex(from);
 
         if (fromDistance > distances_[from]) {
@@ -91,17 +94,17 @@ public:
             if (!IsVisited(to)) {
                 DiscoverVertex(to);
                 distances_[to] = distance;
+                parents_[to] = from;
                 heap_.emplace(to, distance);
             } else if (distances_[to] > distance) {
                 distances_[to] = distance;
+                parents_[to] = from;
                 heap_.emplace(to, distance);
                 RelaxEdge(edgeId);
             } else {
                 NotRelaxed(edgeId);
             }
         }
-
-        isVertexProcessed_[from] = true;
     }
 
     /*
@@ -119,7 +122,7 @@ public:
      * Get the shortest distance after FindShortestPathsWeights.
      */
     Weight GetShortestDistance(VertexId target) const {
-        return distances_[target];
+        return prevRunDistances_[target];
     }
 
     void InitSearch(VertexId source) {
@@ -127,7 +130,28 @@ public:
 
         DiscoverVertex(source);
         distances_[source] = START_WEIGHT;
+        parents_[source] = source;
         heap_.emplace(source, START_WEIGHT);
+    }
+
+    void InitSearch(VertexId source, VertexId target) {
+        Clear();
+
+        DiscoverVertex(target);
+        DiscoverVertex(source);
+        distances_[source] = START_WEIGHT;
+        parents_[source] = source;
+        heap_.emplace(source, START_WEIGHT);
+
+        if (!prevRunDistances_.empty()) {
+            prevRunShortestPath_.clear();
+            auto cur = target;
+            while (cur != prevRunSource_) {
+                ASSERT(!prevRunShortestPath_.contains(cur));
+                prevRunShortestPath_.insert(cur);
+                cur = prevRunParents_[cur];
+            }
+        }
     }
 
 private:
@@ -155,24 +179,34 @@ private:
         affectedVertices_.push_back(vertex);
     }
 
+    bool CalculatedOnPreviousRun(VertexId vertexId) const {
+        return prevRunShortestPath_.contains(vertexId);
+    }
+
     void Clear() {
         for (const auto vertex : affectedVertices_) {
             distances_[vertex] = INF;
-            isVertexProcessed_[vertex] = false;
         }
         affectedVertices_.clear();
         ClearHeap();
     }
 
     void ClearHeap() {
-        heap_ = Heap<HeapElement>();
+        while (!heap_.empty()) {
+            heap_.pop();
+        }
     }
 
     const Graph& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
-    std::vector<char> isVertexProcessed_;  // char is faster than bool.
     Heap<HeapElement> heap_;
 
     std::unordered_set<VertexId> targets_;
+
+    std::vector<VertexId> parents_;
+    std::vector<VertexId> prevRunParents_;
+    std::vector<Weight> prevRunDistances_;
+    std::unordered_set<VertexId> prevRunShortestPath_;
+    VertexId prevRunSource_ = 0;
 };

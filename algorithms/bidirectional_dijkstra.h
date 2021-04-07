@@ -2,8 +2,7 @@
 // Created by mkspopov on 13.11.2020.
 //
 
-#ifndef DIJKSTRA_BIDIRECTIONAL_DIJKSTRA_H
-#define DIJKSTRA_BIDIRECTIONAL_DIJKSTRA_H
+#pragma once
 
 #include "dijkstra.h"
 #include "visitor.h"
@@ -101,6 +100,3 @@ private:
 //
 //    std::unordered_set<VertexId> targets_;
 };
-
-
-#endif //DIJKSTRA_BIDIRECTIONAL_DIJKSTRA_H
