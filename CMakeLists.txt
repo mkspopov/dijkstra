@@ -3,12 +3,12 @@ project(dijkstra)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -Wall -Werror -Wextra")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -Wall -Werror -Wextra")
 
 add_executable(
     dijkstra
     main.cpp
-    utils.h utils.cpp
 )
 
 add_subdirectory(algorithms)
@@ -19,3 +19,4 @@ target_link_libraries(dijkstra graph)
 
 add_subdirectory(tests)
 add_subdirectory(perf)
+add_subdirectory(utils)

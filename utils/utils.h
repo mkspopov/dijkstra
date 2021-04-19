@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <random>
 
 #define ASSERT(expression) do { \
     if (!(expression)) {       \
@@ -14,13 +15,14 @@
     }                           \
     } while (false)             \
 
-#define RUN_TEST(test_function) \
+#define RUN_TEST(test_function) do { \
     {                            \
     std::cerr << "Running " << #test_function << " ...\n"; \
     Timer timer;                            \
     test_function(); \
     std::cerr << "Done " << #test_function << " in " << timer.Elapsed() / 1'000'000 << "ms\n"; \
-    }
+    }                                \
+    } while (false)
 
 template <class Iterator>
 class IteratorRange {
@@ -89,3 +91,5 @@ public:
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;
 };
+
+std::mt19937& GetRng();

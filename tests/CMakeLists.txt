@@ -10,13 +10,13 @@ add_executable(
     stress_test_dijkstra.cpp
 )
 
-add_executable(
-    unit_tests
-    test_hierarchical_dijkstra.cpp
-)
-
 target_link_libraries(stress_tests ${Boost_LIBRARIES})
 target_link_libraries(stress_tests algorithms)
 
-target_link_libraries(unit_tests ${Boost_LIBRARIES})
-target_link_libraries(unit_tests algorithms)
+#add_executable(
+#    unit_tests
+#    test_hierarchical_dijkstra.cpp
+#)
+
+#target_link_libraries(unit_tests ${Boost_LIBRARIES})
+#target_link_libraries(unit_tests algorithms)

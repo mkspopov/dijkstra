@@ -87,6 +87,10 @@ public:
         return false;
     }
 
+    std::string GetName() const {
+        return "BidirectionalDijkstra";
+    }
+
 private:
     const Graph& graph_;
     const Graph reversedGraph_;

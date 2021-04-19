@@ -20,3 +20,8 @@ Logger::LineLogger::LineLogger(const Logger& logger)
 Logger::LineLogger::~LineLogger() {
     os_ << lineEnd_;
 }
+
+std::mt19937& GetRng() {
+    static std::mt19937 gen;
+    return gen;
+}

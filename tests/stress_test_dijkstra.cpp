@@ -74,10 +74,9 @@ void TestDijkstraPrevRun() {
     ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(testGraph);
     bidijkstra.Preprocess();
 
-    for (VertexId vertex = 0; vertex < testGraph.VerticesCount() / 1000; ++vertex) {
+    for (VertexId vertex = 0; vertex < testGraph.VerticesCount() / 10000; ++vertex) {
         auto my = dijkstra.FindShortestPathWeight(vertex, target);
         auto rightAnswer = bidijkstra.FindShortestPathWeight(vertex, target);
-//        std::cerr << my << ' ' << rightAnswer << std::endl;
         ASSERT(my == rightAnswer);
     }
 }

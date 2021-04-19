@@ -2,7 +2,7 @@
 #include "algorithms/dijkstra.h"
 #include "algorithms/shortest_path_algorithm.h"
 #include "graph/serializer.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 int main() {
     const std::string path = "../graphs/USA-road-d.NY.gr";

@@ -10,7 +10,7 @@ template <class Algorithm>
 class ShortestPathAlgorithm {
 public:
     explicit ShortestPathAlgorithm(const Graph& graph)
-            : algorithm_(graph) {
+        : algorithm_(graph) {
     }
 
     Weight FindShortestPathWeight(VertexId source, VertexId target) {
@@ -27,6 +27,10 @@ public:
 
     void Preprocess() {
         algorithm_.Preprocess();
+    }
+
+    std::string GetName() const {
+        return algorithm_.GetName();
     }
 
 private:

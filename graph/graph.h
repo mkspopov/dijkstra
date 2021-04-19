@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "../types.h"
-#include "../utils.h"
+#include "../utils/types.h"
+#include "../utils/utils.h"
 
 #include <vector>
 
