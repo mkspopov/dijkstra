@@ -6,7 +6,7 @@
 
 #include "dijkstra.h"
 #include "heap.h"
-#include "../graph/graph.h"
+#include "graph.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -18,9 +18,9 @@
 
 class PrevRunDijkstra {
 public:
-    static constexpr Weight INF = std::numeric_limits<Weight>::infinity();
-    static constexpr Weight START_WEIGHT = 0;
-    static constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
+    static inline constexpr Weight INF = std::numeric_limits<Weight>::infinity();
+    static inline constexpr Weight START_WEIGHT = 0;
+    static inline constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
 
     explicit PrevRunDijkstra(const Graph& graph)
         : graph_(graph)

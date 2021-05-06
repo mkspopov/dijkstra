@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../graph/graph.h"
+#include "graph.h"
 
 template <class Algorithm>
 class ShortestPathAlgorithm {

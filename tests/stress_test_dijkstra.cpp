@@ -1,9 +1,9 @@
-#include "../algorithms/shortest_path_algorithm.h"
-#include "../algorithms/dijkstra.h"
-#include "../algorithms/dijkstra_prevrun.h"
-#include "../algorithms/bidirectional_dijkstra.h"
-#include "../graph/serializer.h"
-#include "../utils.h"
+#include "shortest_path_algorithm.h"
+#include "dijkstra.h"
+#include "dijkstra_prevrun.h"
+#include "bidirectional_dijkstra.h"
+#include "serializer.h"
+#include "utils.h"
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -92,9 +92,22 @@ void TestBidirectionalDijkstra() {
     }
 }
 
+void TestMultiLevelDijkstra() {
+    const auto& d = CalcDistancesBoost();
+
+    ShortestPathAlgorithm<MultiLevelDijkstra> dijkstra(testGraph);
+    dijkstra.Preprocess();
+    dijkstra.FindShortestPathsWeights(0);
+
+    for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
+        ASSERT(dijkstra.GetShortestDistance(vertex) == d[vertex]);
+    }
+}
+
 int main() {
     std::cerr << "Running tests ...\n";
 //    RUN_TEST(TestDijkstra);
+    RUN_TEST(TestMultiLevelDijkstra);
     RUN_TEST(TestDijkstraPrevRun);
     RUN_TEST(TestBidirectionalDijkstra);
     std::cerr << "Done tests.\n";

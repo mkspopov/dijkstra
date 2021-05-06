@@ -6,7 +6,7 @@
 
 #include "dijkstra.h"
 #include "visitor.h"
-#include "../graph/graph.h"
+#include "graph.h"
 
 
 class BidirectionalDijkstra {

@@ -2,7 +2,9 @@ add_library(
     graph
     STATIC
     graph.h graph.cpp
+    multilevel_graph.h multilevel_graph.cpp
     serializer.h serializer.cpp
 )
 
+target_include_directories(graph PUBLIC ../utils)
 target_link_libraries(graph utils)

@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iostream>
 #include <random>
+#include <tuple>
 
 #define ASSERT(expression) do { \
     if (!(expression)) {       \
@@ -93,3 +94,31 @@ private:
 };
 
 std::mt19937& GetRng();
+
+template <class ClassRef>
+class Enumerate {
+public:
+    explicit Enumerate(ClassRef& c, size_t index = 0) : c_(c), index_(index) {
+    }
+
+    Enumerate& operator++() {
+        ++index_;
+        return *this;
+    }
+
+    auto operator*() {
+        return std::tie(index_, c_[index_]);
+    }
+
+    bool operator!=(const Enumerate& rhs) const {
+        return index_ != rhs.index_;
+    }
+
+    auto begin() { return Enumerate(c_, 0); }
+
+    auto end() { return Enumerate(c_, c_.size()); }
+
+private:
+    ClassRef& c_;
+    size_t index_ = 0;
+};

@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include "../utils/types.h"
-#include "../utils/utils.h"
+#include "types.h"
+#include "utils.h"
 
 #include <vector>
 
 struct Edge {
-    Edge(VertexId to);
-
+    VertexId from;
     VertexId to;
 };
 
@@ -31,6 +30,9 @@ public:
 
     IteratorRange<std::vector<EdgeId>::const_iterator>
     GetOutgoingEdges(VertexId from) const;
+
+    const std::vector<Edge>&
+    GetEdges() const;
 
     VertexId GetTarget(EdgeId edgeId) const;
 

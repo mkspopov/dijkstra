@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../utils/types.h"
+#include "types.h"
 
 #include <queue>
 #include <type_traits>

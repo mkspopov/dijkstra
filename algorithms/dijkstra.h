@@ -5,7 +5,7 @@
 #pragma once
 
 #include "heap.h"
-#include "../graph/graph.h"
+#include "graph.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -16,9 +16,9 @@
 
 class Dijkstra {
 public:
-    static constexpr Weight INF = std::numeric_limits<Weight>::infinity();
-    static constexpr Weight START_WEIGHT = 0;
-    static constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
+    static inline constexpr Weight INF = std::numeric_limits<Weight>::infinity();
+    static inline constexpr Weight START_WEIGHT = 0;
+    static inline constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
 
     explicit Dijkstra(const Graph& graph)
         : graph_(graph)
@@ -176,3 +176,69 @@ private:
 
     std::unordered_set<VertexId> targets_;
 };
+
+enum class Color {
+    WHITE,
+    GRAY,
+    BLACK,
+};
+
+template <class Queue, class Visitor>
+void BoostDijkstra(
+    const Graph& graph,
+    std::vector<Weight>& distances,
+    std::vector<Color>& colors,
+    const std::vector<VertexId>& sources,
+    Queue& queue,
+    Visitor& visitor)
+{
+    for (auto source : sources) {
+        distances[source] = 0;
+        colors[source] = Color::GRAY;
+        queue.Push(source, 0);
+        visitor.SourceVertex(source);
+    }
+    
+    while (!queue.Empty()) {
+        auto [from, dist] = queue.Extract();
+        // TODO: Optional check to easily deal with 
+        // std::priority_queue. This may slow down
+        // code because of memory load of a random vertex
+        // of the graph. So, measure time without it.
+        if (colors[from] == Color::BLACK) {
+            continue;
+        }
+        visitor.ExamineVertex(from);
+
+        for (auto edgeId : graph.GetOutgoingEdges(from)) {
+            visitor.ExamineEdge(edgeId);
+            auto to = graph.GetTarget(edgeId);
+            auto relaxedDist = dist + graph.GetEdgeProperties(edgeId).weight;
+            if (relaxedDist < distances[to]) {
+                distances[to] = relaxedDist;
+                colors[to] = Color::GRAY;
+                if (colors[to] == Color::WHITE) {
+                    queue.Push(to, relaxedDist);
+                } else if (colors[to] == Color::GRAY) {
+                    queue.Decrease(to, relaxedDist);
+                }
+                visitor.EdgeRelaxed(edgeId);
+            }
+        }
+        colors[from] = Color::BLACK;
+        visitor.FinishVertex(from);
+    }
+}
+
+template <class Queue, class Visitor>
+auto BoostDijkstra(
+    const Graph& graph,
+    const std::vector<VertexId>& sources,
+    Visitor& visitor)
+{
+    std::vector<Weight> distances(graph.VerticesCount(), Dijkstra::INF);
+    std::vector<Color> colors(graph.VerticesCount(), Color::WHITE);
+    Queue queue;
+    BoostDijkstra(graph, distances, colors, sources, queue, visitor);
+    return distances;
+}
