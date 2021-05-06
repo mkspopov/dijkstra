@@ -57,13 +57,10 @@ auto CellInnerTransitions(const IntermediateGraph& graph, VertexId vertexId) {
         FilterIterator(range.end(), range.end(), filter));
 }
 
-struct DefaultVisitor {};
-
 IntermediateGraph CliqueContraction(const MultilevelGraph& mlg) {
     auto zeroLevelGraph = mlg.GetGraph();
     IntermediateGraph graph(std::move(zeroLevelGraph));
 
-    DefaultVisitor defaultVisitor;
     for (LevelId level = 1; level + 1 < mlg.LevelsCount(); ++level) {
         std::unordered_map<VertexId, std::vector<Edge>> levelCutEdges;
         std::unordered_map<VertexId, std::vector<VertexId>> borderVertices;
@@ -104,8 +101,7 @@ IntermediateGraph CliqueContraction(const MultilevelGraph& mlg) {
                     graph,
                     {u},
                     border,
-                    CellInnerTransitions,
-                    defaultVisitor);
+                    CellInnerTransitions);
                 for (auto v : border) {
                     if (u != v && distances[v] < Dijkstra::INF) {
                         cellEdges.emplace_back(u, v, EdgeProperty{distances[v]});
