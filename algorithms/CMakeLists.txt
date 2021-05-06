@@ -2,6 +2,7 @@ add_library(
     algorithms
     STATIC
     bidirectional_dijkstra.h bidirectional_dijkstra.cpp
+    contraction.h contraction.cpp
     dijkstra.h dijkstra.cpp
     dijkstra_prevrun.h
     heap.h

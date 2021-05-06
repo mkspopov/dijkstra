@@ -49,6 +49,9 @@ GraphBuilder::GraphBuilder(VertexId verticesCount) {
     graph_.adjacencyList_.resize(verticesCount);
 }
 
+GraphBuilder::GraphBuilder(Graph&& graph) : graph_(std::move(graph)) {
+}
+
 VertexId GraphBuilder::AddVertex() {
     graph_.adjacencyList_.emplace_back();
     return graph_.adjacencyList_.size() - 1;
@@ -62,7 +65,7 @@ EdgeId GraphBuilder::AddEdge(VertexId from, VertexId to, EdgeProperty properties
     }
 
     const EdgeId edgeId = graph_.edges_.size();
-    graph_.edges_.push_back({from, to});
+    graph_.edges_.emplace_back(edgeId, from, to);
     graph_.edgeProperties_.emplace_back(std::move(properties));
     graph_.adjacencyList_[from].push_back(edgeId);
     return edgeId;

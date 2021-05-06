@@ -27,4 +27,4 @@ struct HeapElement {
 };
 
 template <class T>
-using Heap = std::priority_queue<T, std::vector<T>, std::greater<>>;
+using MinHeap = std::priority_queue<T, std::vector<T>, std::greater<>>;

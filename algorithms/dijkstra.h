@@ -165,14 +165,14 @@ private:
     }
 
     void ClearHeap() {
-        heap_ = Heap<HeapElement>();
+        heap_ = MinHeap<HeapElement>();
     }
 
     const Graph& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
     std::vector<char> isVertexProcessed_;  // char is faster than bool.
-    Heap<HeapElement> heap_;
+    MinHeap<HeapElement> heap_;
 
     std::unordered_set<VertexId> targets_;
 };

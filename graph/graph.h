@@ -10,6 +10,10 @@
 #include <vector>
 
 struct Edge {
+    Edge(EdgeId id, VertexId from, VertexId to) : id(id), from(from), to(to) {
+    }
+
+    EdgeId id;
     VertexId from;
     VertexId to;
 };
@@ -53,8 +57,8 @@ private:
 class GraphBuilder {
 public:
     GraphBuilder() = default;
-
     explicit GraphBuilder(VertexId verticesCount);
+    explicit GraphBuilder(Graph&& graph);
 
     VertexId AddVertex();
 
@@ -62,7 +66,7 @@ public:
 
     Graph&& Build();
 
-private:
+//private:
     Graph graph_;
     bool built_ = false;
 };

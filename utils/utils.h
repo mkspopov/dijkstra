@@ -8,6 +8,7 @@
 #include <iostream>
 #include <random>
 #include <tuple>
+#include <unordered_map>
 
 #define ASSERT(expression) do { \
     if (!(expression)) {       \
@@ -44,6 +45,70 @@ public:
 private:
     Iterator begin_;
     Iterator end_;
+};
+
+template <class Iterator, class Predicate>
+class FilterIterator : std::iterator<std::forward_iterator_tag, typename Iterator::value_type> {
+public:
+    FilterIterator(Iterator current, Iterator end, Predicate predicate)
+        : current_(std::move(current))
+        , end_(std::move(end))
+        , predicate_(std::move(predicate)) {
+    }
+
+    FilterIterator& operator++() {
+        ++current_;
+        while (current_ != end_ && !predicate_(*current_)) {
+            ++current_;
+        }
+        return *this;
+    }
+
+    auto operator*() const {
+        return *current_;
+    }
+
+    bool operator==(const FilterIterator& rhs) const {
+        return current_ == rhs.current_;
+    }
+
+private:
+    Iterator current_;
+    Iterator end_;
+    Predicate predicate_;
+};
+
+template <typename Integer>
+class Range : public std::iterator<std::forward_iterator_tag, Integer> {
+public:
+    Range(Integer begin, Integer end)
+        : begin_(begin), end_(end) {
+    }
+
+    Range begin() const {
+        return Range(begin_, end_);
+    }
+
+    Range end() const {
+        return Range(end_, end_);
+    }
+
+    Range& operator++() {
+        ++begin_;
+        return *this;
+    }
+
+    Integer operator*() const {
+        return begin_;
+    }
+
+    bool operator==(const Range& rhs) const {
+        return begin_ == rhs.begin_;
+    }
+
+private:
+    Integer begin_;
+    Integer end_;
 };
 
 class Logger {
@@ -121,4 +186,31 @@ public:
 private:
     ClassRef& c_;
     size_t index_ = 0;
+};
+
+template <typename From, typename To>
+struct Mapping {
+    bool TryAdd(From from, To to) {
+        if (direct_.contains(from) || inverse_.contains(to)) {
+            return false;
+        }
+        direct_.emplace(from, to);
+        inverse_.emplace(to, from);
+        return true;
+    }
+
+    bool Contains(From from) const {
+        return direct_.contains(from);
+    }
+
+    To& Direct(From from) {
+        return direct_.at(from);
+    }
+
+    From& Inverse(To to) {
+        return inverse_.at(to);
+    }
+
+    std::unordered_map<From, To> direct_;
+    std::unordered_map<To, From> inverse_;
 };
