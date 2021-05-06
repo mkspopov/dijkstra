@@ -4,4 +4,5 @@ add_executable(
 )
 
 target_link_libraries(graph_tests graph)
+target_include_directories(graph_tests PUBLIC ../)
 target_include_directories(graph_tests PUBLIC ../../graph)

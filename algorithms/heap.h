@@ -26,5 +26,26 @@ struct HeapElement {
     Weight weight;
 };
 
-template <class T>
-using MinHeap = std::priority_queue<T, std::vector<T>, std::greater<>>;
+class StdHeap {
+public:
+    void Push(HeapElement t) {
+        heap_.emplace(t);
+    }
+
+    void Decrease(HeapElement t) {
+        heap_.emplace(t);
+    }
+
+    bool Empty() const {
+        return heap_.empty();
+    }
+
+    auto Extract() {
+        auto top = heap_.top();
+        heap_.pop();
+        return top;
+    }
+
+private:
+    std::priority_queue<HeapElement, std::vector<HeapElement>, std::greater<>> heap_;
+};

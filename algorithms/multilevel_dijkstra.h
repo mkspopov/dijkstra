@@ -31,7 +31,7 @@ void MultiLevelDijkstra(
     for (auto source : sources) {
         distances[source] = 0;
         colors[source] = Color::GRAY;
-        queue.Push(source, 0);
+        queue.Push({source, 0});
     }
 
     while (!queue.Empty()) {
@@ -54,9 +54,9 @@ void MultiLevelDijkstra(
                 distances[to] = relaxedDist;
                 colors[to] = Color::GRAY;
                 if (colors[to] == Color::WHITE) {
-                    queue.Push(to, relaxedDist);
+                    queue.Push({to, relaxedDist});
                 } else if (colors[to] == Color::GRAY) {
-                    queue.Decrease(to, relaxedDist);
+                    queue.Decrease({to, relaxedDist});
                 }
             }
         }
@@ -74,6 +74,6 @@ auto MultiLevelDijkstra(
     std::vector<Weight> distances(graph.VerticesCount(), Dijkstra::INF);
     std::vector<Color> colors(graph.VerticesCount(), Color::WHITE);
     Queue queue;
-    BoostDijkstra(graph, distances, colors, sources, targets, transitions, queue);
+    MultiLevelDijkstra(graph, distances, colors, sources, targets, transitions, queue);
     return distances;
 }

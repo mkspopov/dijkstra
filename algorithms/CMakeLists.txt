@@ -13,3 +13,5 @@ add_library(
 
 target_include_directories(algorithms PUBLIC ../graph)
 target_link_libraries(algorithms graph)
+
+add_subdirectory(tests)

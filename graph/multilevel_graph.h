@@ -2,6 +2,7 @@
 
 #include "graph.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <ranges>
@@ -9,16 +10,28 @@
 
 struct Topology {
     VertexId GetCellId(VertexId vertexId, LevelId level) const {
-        auto childOnZeroLevel = vertexId - *std::upper_bound(sizes_.begin(), sizes_.end(), vertexId);
+        auto nextLevel = std::upper_bound(sizes_.begin(), sizes_.end(), vertexId);
+        auto lowerLevelsVerticesCount = *(--nextLevel);
+        assert(lowerLevelsVerticesCount <= vertexId);
+        auto childOnZeroLevel = vertexId - lowerLevelsVerticesCount;
         return cells_[level][childOnZeroLevel] + sizes_[level];
     }
 
     VertexId GetCellId(VertexId vertexId) const {
-        return GetCellId(vertexId, Level(vertexId) + 1);
+        return GetCellId(vertexId, Level(vertexId));
     }
 
     LevelId Level(VertexId from) const {
         return std::distance(sizes_.begin(), std::upper_bound(sizes_.begin(), sizes_.end(), from));
+    }
+
+    LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
+        assert(cells_.size() > 1);
+        LevelId level = 1;
+        while (cells_[level][first] != cells_[level][second]) {
+            ++level;
+        }
+        return level - 1;
     }
 
     std::vector<std::vector<VertexId>> cells_;
@@ -41,16 +54,25 @@ public:
         for (const auto& [level, layer] : Enumerate(topology_.cells_)) {
             topology_.cellIds_.emplace_back();
             std::unordered_set<VertexId> visitedVertices;
-            for (auto [childId, cellId] : Enumerate(layer)) {
+            for (auto [id, cellId] : Enumerate(layer)) {
                 if (!visitedVertices.contains(cellId)) {
                     visitedVertices.insert(cellId);
                     auto vertexId = builder.AddVertex();
                     topology_.cellIds_.back().push_back(vertexId);
-                    topology_.children_.emplace_back().push_back(childId);
-                } else {
-                    topology_.children_[cellId + topology_.sizes_[level]].push_back(childId);
+                    topology_.children_.emplace_back();
+                    if (level > 0) {
+                        topology_.children_.back().push_back(GetCellId(id, level - 1));
+                    }
+                } else if (level > 0) {
+                    topology_.children_[cellId + topology_.sizes_[level]].push_back(GetCellId(id, level - 1));
                 }
             }
+        }
+
+        for (auto& children : topology_.children_) {
+            std::ranges::sort(children);
+            auto [first, last] = std::ranges::unique(children);
+            children.erase(first, last);
         }
 
         // for each vertex we have component edges and cut edges
@@ -85,7 +107,7 @@ public:
         if (level == 0) {
             return VerticesCount();
         }
-        return topology_.sizes_[level] - topology_.sizes_[level - 1];
+        return topology_.sizes_[level + 1] - topology_.sizes_[level];
     }
 
 //    EdgeId EdgesCount() const {
@@ -95,12 +117,11 @@ public:
     Graph Reversed() const;
 
     LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
-        assert(topology_.cells_.size() > 1);
-        LevelId level = 1;
-        while (topology_.cells_[level][first] != topology_.cells_[level][second]) {
-            ++level;
-        }
-        return level - 1;
+        return topology_.MaxDistinctLevel(first, second);
+    }
+
+    VertexId GetCellId(VertexId vertex) const {
+        return topology_.GetCellId(vertex);
     }
 
     VertexId GetCellId(VertexId vertex, LevelId level) const {
@@ -129,8 +150,10 @@ public:
         return graph_;
     }
 
-    const auto& GetCells(LevelId level) const {
-        return topology_.cellIds_[level];
+    auto GetCells(LevelId level) const {
+        return topology_.cellIds_[level] | std::views::transform([&](auto cellId) {
+            return cellId + topology_.sizes_[level];
+        });
     }
 
     const auto& GetVertices(VertexId cellId) const {

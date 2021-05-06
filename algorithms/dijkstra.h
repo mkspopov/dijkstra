@@ -45,8 +45,8 @@ public:
 
     Weight FindShortestPathWeight(VertexId source, VertexId target) {
         InitSearch(source);
-        while (!heap_.empty()) {
-            const auto [from, fromDistance] = heap_.top();
+        while (!heap_.Empty()) {
+            const auto [from, fromDistance] = heap_.Extract();
             if (from == target) {
                 return fromDistance;
             }
@@ -57,23 +57,22 @@ public:
 
     void FindShortestPathsWeights(VertexId source) {
         InitSearch(source);
-        while (!heap_.empty()) {
-            const auto [from, fromDistance] = heap_.top();
+        while (!heap_.Empty()) {
+            const auto [from, fromDistance] = heap_.Extract();
             ProcessVertex(from, fromDistance);
         }
     }
 
     VertexId ProcessVertex() {
-        if (heap_.empty()) {
+        if (heap_.Empty()) {
             return UNDEFINED_VERTEX;
         }
-        const auto [from, fromDistance] = heap_.top();
+        const auto [from, fromDistance] = heap_.Extract();
         ProcessVertex(from, fromDistance);
         return from;
     }
 
     void ProcessVertex(int from, float fromDistance) {
-        heap_.pop();
         ExamineVertex(from);
 
         if (fromDistance > distances_[from]) {
@@ -91,10 +90,10 @@ public:
             if (!IsVisited(to)) {
                 DiscoverVertex(to);
                 distances_[to] = distance;
-                heap_.emplace(to, distance);
+                heap_.Push({to, distance});
             } else if (distances_[to] > distance) {
                 distances_[to] = distance;
-                heap_.emplace(to, distance);
+                heap_.Push({to, distance});
                 RelaxEdge(edgeId);
             } else {
                 NotRelaxed(edgeId);
@@ -127,7 +126,7 @@ public:
 
         DiscoverVertex(source);
         distances_[source] = START_WEIGHT;
-        heap_.emplace(source, START_WEIGHT);
+        heap_.Push({source, START_WEIGHT});
     }
 
 private:
@@ -165,14 +164,14 @@ private:
     }
 
     void ClearHeap() {
-        heap_ = MinHeap<HeapElement>();
+        heap_ = StdHeap();
     }
 
     const Graph& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
     std::vector<char> isVertexProcessed_;  // char is faster than bool.
-    MinHeap<HeapElement> heap_;
+    StdHeap heap_;
 
     std::unordered_set<VertexId> targets_;
 };

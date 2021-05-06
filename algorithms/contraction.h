@@ -39,6 +39,18 @@ struct IntermediateGraph {
         return topology_.sizes_.size();
     }
 
+    VertexId VerticesCount() const {
+        return builder_.graph_.VerticesCount();
+    }
+
+    auto GetEdgeProperties(EdgeId edgeId) const {
+        return builder_.graph_.GetEdgeProperties(edgeId);
+    }
+
+    LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
+        return topology_.MaxDistinctLevel(first, second);
+    }
+
 //    Graph graph_;
     Topology topology_;
     Mapping<VertexId, VertexId> mapping;
@@ -91,30 +103,30 @@ IntermediateGraph CliqueContraction(const MultilevelGraph& mlg) {
             }
         }
 
-        std::unordered_map<VertexId, std::vector<Edge>> levelCellEdges;
+        std::unordered_map<VertexId, std::vector<std::tuple<VertexId, VertexId, Weight>>> levelCellEdges;
         for (auto cellId : mlg.GetCells(level)) {
             const auto& border = borderVertices[cellId];
             auto& cellEdges = levelCellEdges[cellId];
             // async
             for (auto u : border) {
-                auto distances = MultiLevelDijkstra<MinHeap>(
+                auto distances = MultiLevelDijkstra<StdHeap>(
                     graph,
                     {u},
                     border,
                     CellInnerTransitions);
                 for (auto v : border) {
                     if (u != v && distances[v] < Dijkstra::INF) {
-                        cellEdges.emplace_back(u, v, EdgeProperty{distances[v]});
+                        cellEdges.emplace_back(u, v, distances[v]);
                     }
                 }
             }
         }
         // async:WaitAll
         for (auto&& [cellId, cellEdges] : levelCellEdges) {
-            for (auto [id, u, v] : cellEdges) {
+            for (auto [u, v, distance] : cellEdges) {
                 graph.AddVertex(u);
                 graph.AddVertex(v);
-                graph.AddEdge(u, v, mlg.GetEdgeProperties(id));
+                graph.AddEdge(u, v, EdgeProperty{distance});
             }
         }
     }

@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <tuple>
 #include <unordered_map>
 
@@ -30,8 +31,7 @@ template <class Iterator>
 class IteratorRange {
 public:
     IteratorRange(Iterator begin, Iterator end)
-        : begin_(begin)
-        , end_(end) {
+        : begin_(begin), end_(end) {
     }
 
     Iterator begin() const {
@@ -51,9 +51,7 @@ template <class Iterator, class Predicate>
 class FilterIterator : std::iterator<std::forward_iterator_tag, typename Iterator::value_type> {
 public:
     FilterIterator(Iterator current, Iterator end, Predicate predicate)
-        : current_(std::move(current))
-        , end_(std::move(end))
-        , predicate_(std::move(predicate)) {
+        : current_(std::move(current)), end_(std::move(end)), predicate_(std::move(predicate)) {
     }
 
     FilterIterator& operator++() {
@@ -118,9 +116,11 @@ public:
         explicit LineLogger(const Logger& logger);
 
         LineLogger(const LineLogger&) = delete;
+
         LineLogger(LineLogger&&) = delete;
 
         LineLogger& operator=(const LineLogger&) = delete;
+
         LineLogger& operator=(LineLogger&&) = delete;
 
         ~LineLogger();
@@ -214,3 +214,16 @@ struct Mapping {
     std::unordered_map<From, To> direct_;
     std::unordered_map<To, From> inverse_;
 };
+
+#define ASSERT_EQUAL(lhs, rhs) do {                                            \
+    auto left = (lhs);                                                         \
+    auto right = (rhs);                                                        \
+    if (!(left == right)) {                                                    \
+        std::stringstream ss;                                                  \
+        ss <<  __FILE__ << ':' << __LINE__ << std::endl;                       \
+        ss << "\t\tASSERT_EQUAL failed:\t" << left << "\t!=\t" << right << std::endl;\
+        ss << "\t\tArgs:\t" << #lhs << "\t!=\t" << #rhs << std::endl;                 \
+        throw std::runtime_error(ss.str());                                    \
+    }                                                                          \
+} while (false)                                                                \
+
