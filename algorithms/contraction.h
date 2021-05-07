@@ -7,16 +7,19 @@
 
 struct IntermediateGraph {
     IntermediateGraph(Graph&& graph, const MultilevelGraph& mlg) : builder_(std::move(graph)), topology_(mlg.GetTopology()) {
+        for (VertexId v = 0; v < builder_.graph_.VerticesCount(); ++v) {
+            vertices_.insert(v);
+        }
     }
 
-    void AddVertex(VertexId mapFrom) {
-        if (!mapping.Contains(mapFrom)) {
-            auto mapTo = builder_.AddVertex();
-            mapping.TryAdd(mapFrom, mapTo);
+    void AddVertex(VertexId vertex) {
+        if (!vertices_.contains(vertex)) {
+            builder_.AddVertex();
+            vertices_.insert(vertex);
         }
     }
     void AddEdge(VertexId from, VertexId to, EdgeProperty edgeProperty) {
-        builder_.AddEdge(mapping.Direct(from), mapping.Direct(to), std::move(edgeProperty));
+        builder_.AddEdge(from, to, std::move(edgeProperty));
     }
 
     VertexId GetCellId(VertexId vertex, LevelId level) const {
@@ -36,7 +39,7 @@ struct IntermediateGraph {
     }
 
     LevelId LevelsCount() const {
-        return topology_.sizes_.size();
+        return topology_.cells_.size();
     }
 
     VertexId VerticesCount() const {
@@ -51,16 +54,14 @@ struct IntermediateGraph {
         return topology_.MaxDistinctLevel(first, second);
     }
 
-//    Graph graph_;
     const Topology& topology_;
-    Mapping<VertexId, VertexId> mapping;
+    std::unordered_set<VertexId> vertices_;
 
     GraphBuilder builder_;
 };
 
 auto CellInnerTransitions(const IntermediateGraph& graph, VertexId vertexId) {
-    const auto cell = graph.GetCellId(vertexId);
-    auto filter = [&](EdgeId edgeId) {
+    auto filter = [&graph, cell = graph.GetCellId(vertexId)](EdgeId edgeId) {
         return graph.GetCellId(graph.GetTarget(edgeId)) == cell;
     };
     const auto& range = graph.GetOutgoingEdges(vertexId);

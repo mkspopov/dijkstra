@@ -52,8 +52,8 @@ void MultiLevelDijkstra(
             auto relaxedDist = dist + graph.GetEdgeProperties(edgeId).weight;
             if (relaxedDist < distances[to]) {
                 distances[to] = relaxedDist;
-                colors[to] = Color::GRAY;
                 if (colors[to] == Color::WHITE) {
+                    colors[to] = Color::GRAY;
                     queue.Push({to, relaxedDist});
                 } else if (colors[to] == Color::GRAY) {
                     queue.Decrease({to, relaxedDist});

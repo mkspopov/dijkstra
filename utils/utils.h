@@ -60,14 +60,14 @@ template <class Iterator, class Predicate>
 class FilterIterator : std::iterator<std::forward_iterator_tag, typename Iterator::value_type> {
 public:
     FilterIterator(Iterator current, Iterator end, Predicate predicate)
-        : current_(std::move(current)), end_(std::move(end)), predicate_(std::move(predicate)) {
+        : current_(std::move(current)), end_(std::move(end)), predicate_(std::move(predicate))
+    {
+        AdvanceIfNeeded();
     }
 
     FilterIterator& operator++() {
         ++current_;
-        while (current_ != end_ && !predicate_(*current_)) {
-            ++current_;
-        }
+        AdvanceIfNeeded();
         return *this;
     }
 
@@ -80,6 +80,12 @@ public:
     }
 
 private:
+    void AdvanceIfNeeded() {
+        while (current_ != end_ && !predicate_(*current_)) {
+            ++current_;
+        }
+    }
+
     Iterator current_;
     Iterator end_;
     Predicate predicate_;

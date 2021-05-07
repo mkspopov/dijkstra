@@ -17,8 +17,8 @@ EdgeProperty Graph::GetEdgeProperties(EdgeId edgeId) const {
 
 IteratorRange<std::vector<EdgeId>::const_iterator> Graph::GetOutgoingEdges(VertexId from) const {
     return IteratorRange(
-            adjacencyList_[from].begin(),
-            adjacencyList_[from].end());
+            adjacencyList_.at(from).begin(),
+            adjacencyList_.at(from).end());
 }
 
 const std::vector<Edge>& Graph::GetEdges() const {

@@ -62,8 +62,9 @@ struct Topology {
 
 class MultilevelGraph {
 public:
-    explicit MultilevelGraph(const Graph& graph, Topology topology)
-        : graph_(graph)
+    template <class G>
+    explicit MultilevelGraph(G&& graph, Topology topology)
+        : graph_(std::forward<G>(graph))
         , topology_(std::move(topology))
     {
         assert(topology_.sizes_.front() == 0);
@@ -174,7 +175,7 @@ public:
     }
 
 private:
-    const Graph& graph_;
+    Graph graph_;
     Topology topology_;
 
     Graph multilevelGraph_;
