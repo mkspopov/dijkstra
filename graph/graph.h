@@ -26,6 +26,8 @@ struct EdgeProperty {
     }
 };
 
+std::ostream& operator<<(std::ostream& os, const EdgeProperty& edgeProperty);
+
 class Graph {
 public:
     Graph() = default;

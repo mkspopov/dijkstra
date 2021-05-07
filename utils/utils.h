@@ -27,6 +27,15 @@
     }                                \
     } while (false)
 
+template <class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& arr) {
+    for (const auto& elem : arr) {
+        os << elem << ' ';
+    }
+//    os << std::endl;
+    return os;
+}
+
 template <class Iterator>
 class IteratorRange {
 public:
@@ -116,11 +125,8 @@ public:
         explicit LineLogger(const Logger& logger);
 
         LineLogger(const LineLogger&) = delete;
-
         LineLogger(LineLogger&&) = delete;
-
         LineLogger& operator=(const LineLogger&) = delete;
-
         LineLogger& operator=(LineLogger&&) = delete;
 
         ~LineLogger();
@@ -137,7 +143,7 @@ public:
         const char lineEnd_ = '\n';
     };
 
-    explicit Logger(std::ostream& os = std::cout);
+    explicit Logger(std::ostream& os = std::cerr);
 
 private:
     std::ostream& os_;
@@ -227,3 +233,13 @@ struct Mapping {
     }                                                                          \
 } while (false)                                                                \
 
+template <typename Range>
+auto ToVector(Range&& range) {
+    std::vector<std::ranges::range_value_t<decltype(range)>> v;
+    if constexpr(std::ranges::sized_range<decltype(range)>) {
+        v.reserve(std::ranges::size(range));
+    }
+
+    std::copy(range.begin(), range.end(), std::back_inserter(v));
+    return v;
+}

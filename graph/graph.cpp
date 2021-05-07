@@ -6,6 +6,11 @@
 
 #include <cassert>
 
+std::ostream& operator<<(std::ostream& os, const EdgeProperty& edgeProperty) {
+    os << edgeProperty.weight;
+    return os;
+}
+
 EdgeProperty Graph::GetEdgeProperties(EdgeId edgeId) const {
     return edgeProperties_[edgeId];
 }

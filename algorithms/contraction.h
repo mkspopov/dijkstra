@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 struct IntermediateGraph {
-    explicit IntermediateGraph(Graph&& graph) : builder_(std::move(graph)) {
+    IntermediateGraph(Graph&& graph, const MultilevelGraph& mlg) : builder_(std::move(graph)), topology_(mlg.GetTopology()) {
     }
 
     void AddVertex(VertexId mapFrom) {
@@ -52,7 +52,7 @@ struct IntermediateGraph {
     }
 
 //    Graph graph_;
-    Topology topology_;
+    const Topology& topology_;
     Mapping<VertexId, VertexId> mapping;
 
     GraphBuilder builder_;
@@ -70,8 +70,8 @@ auto CellInnerTransitions(const IntermediateGraph& graph, VertexId vertexId) {
 }
 
 IntermediateGraph CliqueContraction(const MultilevelGraph& mlg) {
-    auto zeroLevelGraph = mlg.GetGraph();
-    IntermediateGraph graph(std::move(zeroLevelGraph));
+    auto zeroLevelGraph = mlg.GetOriginalGraph();
+    IntermediateGraph graph(std::move(zeroLevelGraph), mlg);
 
     for (LevelId level = 1; level + 1 < mlg.LevelsCount(); ++level) {
         std::unordered_map<VertexId, std::vector<Edge>> levelCutEdges;

@@ -9,16 +9,16 @@
 #include <unordered_set>
 
 struct Topology {
-    VertexId GetCellId(VertexId vertexId, LevelId level) const {
-        auto nextLevel = std::upper_bound(sizes_.begin(), sizes_.end(), vertexId);
-        auto lowerLevelsVerticesCount = *(--nextLevel);
-        assert(lowerLevelsVerticesCount <= vertexId);
-        auto childOnZeroLevel = vertexId - lowerLevelsVerticesCount;
-        return cells_[level][childOnZeroLevel] + sizes_[level];
+    VertexId GetCellId(VertexId vertexId) const {
+        return parents_[vertexId];
     }
 
-    VertexId GetCellId(VertexId vertexId) const {
-        return GetCellId(vertexId, Level(vertexId));
+    VertexId GetCellId(VertexId vertexId, LevelId level) const {
+        auto childOnZeroLevel = vertexId;
+        while (childOnZeroLevel >= sizes_.at(1)) {
+            childOnZeroLevel = children_[childOnZeroLevel].front();
+        }
+        return cells_[level][childOnZeroLevel] + sizes_[level];
     }
 
     LevelId Level(VertexId from) const {
@@ -26,12 +26,30 @@ struct Topology {
     }
 
     LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
-        assert(cells_.size() > 1);
-        LevelId level = 1;
-        while (cells_[level][first] != cells_[level][second]) {
-            ++level;
+        auto firstLevel = Level(first);
+        auto secondLevel = Level(second);
+
+        while (firstLevel < secondLevel) {
+            first = parents_[first];
+            ++firstLevel;
         }
-        return level - 1;
+
+        while (secondLevel < firstLevel) {
+            second = parents_[second];
+            ++secondLevel;
+        }
+
+        if (first == second) {
+            return 0;
+        }
+
+        assert(cells_.size() > 1);
+        while (parents_[first] != parents_[second]) {
+            first = parents_[first];
+            second = parents_[second];
+            ++firstLevel;
+        }
+        return firstLevel - 1;
     }
 
     std::vector<std::vector<VertexId>> cells_;
@@ -39,6 +57,7 @@ struct Topology {
 
     std::vector<std::vector<VertexId>> cellIds_;
     std::vector<std::vector<VertexId>> children_;
+    std::vector<VertexId> parents_;
 };
 
 class MultilevelGraph {
@@ -50,22 +69,31 @@ public:
         assert(topology_.sizes_.front() == 0);
         assert(topology_.sizes_.size() == topology_.cells_.size() + 1);
 
-        GraphBuilder builder;
-        for (const auto& [level, layer] : Enumerate(topology_.cells_)) {
+        VertexId zeroLevelVerticesCount = topology_.cells_.front().size();
+        topology_.cellIds_.push_back(topology_.cells_.front());
+        topology_.children_.resize(zeroLevelVerticesCount);
+        topology_.parents_.resize(zeroLevelVerticesCount);
+        GraphBuilder builder(zeroLevelVerticesCount);
+
+        for (LevelId level = 1; level < topology_.cells_.size(); ++level) {
+            const auto& layer = topology_.cells_[level];
             topology_.cellIds_.emplace_back();
             std::unordered_set<VertexId> visitedVertices;
-            for (auto [id, cellId] : Enumerate(layer)) {
+            for (auto [zeroLevelId, cellId] : Enumerate(layer)) {
+                auto childId = topology_.GetCellId(zeroLevelId, level - 1);
                 if (!visitedVertices.contains(cellId)) {
                     visitedVertices.insert(cellId);
                     auto vertexId = builder.AddVertex();
                     topology_.cellIds_.back().push_back(vertexId);
                     topology_.children_.emplace_back();
+                    topology_.parents_.emplace_back();
                     if (level > 0) {
-                        topology_.children_.back().push_back(GetCellId(id, level - 1));
+                        topology_.children_.back().push_back(childId);
                     }
                 } else if (level > 0) {
-                    topology_.children_[cellId + topology_.sizes_[level]].push_back(GetCellId(id, level - 1));
+                    topology_.children_[cellId + topology_.sizes_[level]].push_back(childId);
                 }
+                topology_.parents_[childId] = cellId + topology_.sizes_[level];
             }
         }
 
@@ -89,37 +117,6 @@ public:
         multilevelGraph_ = builder.Build();
     }
 
-    EdgeProperty GetEdgeProperties(EdgeId edgeId) const;
-
-    auto GetOutgoingEdges(VertexId from) const {
-        return multilevelGraph_.GetOutgoingEdges(from);
-    }
-
-    VertexId GetTarget(EdgeId edgeId) const {
-        return graph_.GetTarget(edgeId);
-    }
-
-    VertexId VerticesCount() const {
-        return graph_.VerticesCount();
-    }
-
-    VertexId VerticesCount(LevelId level) const {
-        if (level == 0) {
-            return VerticesCount();
-        }
-        return topology_.sizes_[level + 1] - topology_.sizes_[level];
-    }
-
-//    EdgeId EdgesCount() const {
-//        return edges_.size();
-//    }
-
-    Graph Reversed() const;
-
-    LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
-        return topology_.MaxDistinctLevel(first, second);
-    }
-
     VertexId GetCellId(VertexId vertex) const {
         return topology_.GetCellId(vertex);
     }
@@ -128,36 +125,52 @@ public:
         return topology_.GetCellId(vertex, level);
     }
 
-    LevelId LevelsCount() const {
-        return topology_.cells_.size();
+    auto GetCells(LevelId level) const {
+        return topology_.cellIds_[level];
     }
 
-    auto Vertices(LevelId levelId) const {
-        return Range(topology_.sizes_[levelId], topology_.sizes_[levelId + 1]);
+    EdgeProperty GetEdgeProperties(EdgeId edgeId) const {
+        return multilevelGraph_.GetEdgeProperties(edgeId);
     }
 
-    const std::vector<Edge>&
-    GetEdges() const {
-        return multilevelGraph_.GetEdges();
-    }
-
-    const std::vector<Edge>&
-    GetEdges0() const {
-        return graph_.GetEdges();
-    }
-
-    const auto& GetGraph() const {
+    const auto& GetOriginalGraph() const {
         return graph_;
     }
 
-    auto GetCells(LevelId level) const {
-        return topology_.cellIds_[level] | std::views::transform([&](auto cellId) {
-            return cellId + topology_.sizes_[level];
-        });
+    auto GetOutgoingEdges(VertexId from) const {
+        return multilevelGraph_.GetOutgoingEdges(from);
+    }
+
+    VertexId GetTarget(EdgeId edgeId) const {
+        return multilevelGraph_.GetTarget(edgeId);
     }
 
     const auto& GetVertices(VertexId cellId) const {
         return topology_.children_[cellId];
+    }
+
+    LevelId LevelsCount() const {
+        return topology_.cells_.size();
+    }
+
+    LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
+        return topology_.MaxDistinctLevel(first, second);
+    }
+//
+//    auto Vertices(LevelId levelId) const {
+//        return Range(topology_.sizes_[levelId], topology_.sizes_[levelId + 1]);
+//    }
+
+    VertexId VerticesCount() const {
+        return multilevelGraph_.VerticesCount();
+    }
+
+    VertexId VerticesCount(LevelId level) const {
+        return topology_.sizes_[level + 1] - topology_.sizes_[level];
+    }
+
+    const auto& GetTopology() const {
+        return topology_;
     }
 
 private:
