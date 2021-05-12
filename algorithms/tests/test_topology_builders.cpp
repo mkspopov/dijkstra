@@ -3,7 +3,7 @@
 
 void TestSimpleBuilder() {
     const auto graph = BuildTestGraph();
-    auto topology = BuildSimplyTopology(graph, 4);
+    auto topGraph = BuildSimplyTopology(graph, 4);
     std::cerr << "a";
 }
 

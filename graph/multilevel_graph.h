@@ -132,9 +132,10 @@ private:
 
 class CompactMultilevelGraph {
 public:
-    template <class G, class T>
-    explicit CompactMultilevelGraph(G&& graph, T&& topology)
+    template <class G, class TG, class T>
+    explicit CompactMultilevelGraph(G&& graph, TG&& topGraph, T&& topology)
         : graph_(std::forward<G>(graph))
+        , multilevelGraph_(std::forward<TG>(topGraph))
         , topology_(std::forward<T>(topology))
     {
         assert(topology_.sizes_.front() == 0);
@@ -147,10 +148,6 @@ public:
     VertexId GetCellId(VertexId vertex, LevelId level) const {
         return topology_.GetCellId(vertex, level);
     }
-
-//    auto GetCells(LevelId level) const {
-//        return topology_.cellIds_.at(level);
-//    }
 
     EdgeProperty GetEdgeProperties(EdgeId edgeId) const {
         return multilevelGraph_.GetEdgeProperties(edgeId);
@@ -190,7 +187,6 @@ public:
 
 private:
     Graph graph_;
-    CompactTopology topology_;
-
     Graph multilevelGraph_;
+    CompactTopology topology_;
 };

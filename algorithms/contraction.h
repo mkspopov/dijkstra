@@ -17,12 +17,12 @@ struct IntermediateGraph {
     }
 
     VertexId GetCellId(VertexId vertex, LevelId level) const {
-        assert(vertex < VerticesCount());
+        ASSERT(vertex < VerticesCount());
         return topology_.GetCellId(vertex, level);
     }
 
 //    VertexId GetCellId(VertexId vertex) const {
-//        assert(vertex < VerticesCount());
+//        ASSERT(vertex < VerticesCount());
 //        return topology_.GetCellId(vertex);
 //    }
 
@@ -34,7 +34,7 @@ struct IntermediateGraph {
     static inline const auto EMPTY = IteratorRange(NO_EDGES.cbegin(), NO_EDGES.cend());
 
     auto GetOutgoingEdges(VertexId vertex, LevelId level) const {
-        assert(vertex < VerticesCount());
+        ASSERT(vertex < VerticesCount());
         if (vertices_.at(level).contains(vertex)) {
             return builder_.graph_.GetOutgoingEdges(vertices_.at(level).at(vertex));
         }
@@ -55,8 +55,8 @@ struct IntermediateGraph {
     }
 
     LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
-        assert(first < VerticesCount());
-        assert(second < VerticesCount());
+        ASSERT(first < VerticesCount());
+        ASSERT(second < VerticesCount());
         return topology_.MaxDistinctLevel(first, second);
     }
 
@@ -65,7 +65,7 @@ private:
     friend IntermediateGraph SimpleContraction(const TGraph& mlg);
 
     void AddVertex(VertexId vertex, LevelId level) {
-        assert(vertex < VerticesCount());
+        ASSERT(vertex < VerticesCount());
         if (!vertices_.at(level).contains(vertex)) {
             auto id = builder_.AddVertex();
             vertices_.at(level).emplace(vertex, id);
@@ -73,9 +73,9 @@ private:
     }
 
     void AddEdge(VertexId from, VertexId to, LevelId level, EdgeProperty edgeProperty) {
-        assert(from < VerticesCount());
+        ASSERT(from < VerticesCount());
         AddVertex(from, level);
-//        assert(to < VerticesCount());
+//        ASSERT(to < VerticesCount());
 //        AddVertex(to, level);
         builder_.AddEdge(vertices_.at(level).at(from), to, std::move(edgeProperty));
     }

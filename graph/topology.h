@@ -22,6 +22,10 @@ struct Topology {
         return std::distance(sizes_.begin(), std::upper_bound(sizes_.begin(), sizes_.end(), from));
     }
 
+    LevelId LevelsCount() const {
+        return sizes_.size();
+    }
+
     LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
         auto firstLevel = Level(first);
         auto secondLevel = Level(second);
@@ -47,10 +51,6 @@ struct Topology {
             ++firstLevel;
         }
         return firstLevel - 1;
-    }
-
-    LevelId LevelsCount() const {
-        return sizes_.size();
     }
 
     std::vector<std::vector<VertexId>> cells_;
@@ -79,9 +79,9 @@ struct CompactTopology {
         return vertexId;
     }
 
-//    LevelId Level(VertexId from) const {
-//        return std::distance(sizes_.begin(), std::upper_bound(sizes_.begin(), sizes_.end(), from));
-//    }
+    LevelId Level(VertexId from) const {
+        return std::distance(sizes_.begin(), std::upper_bound(sizes_.begin(), sizes_.end(), from));
+    }
 
     LevelId LevelsCount() const {
         return sizes_.size();

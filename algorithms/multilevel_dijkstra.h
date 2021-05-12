@@ -28,6 +28,9 @@ void MultilevelDijkstra(
     Transitions transitions,
     Queue& queue)
 {
+    // TODO: Deal with many targets.
+    ASSERT_EQUAL(targets.size(), 1);
+
     for (auto source : sources) {
         distances.at(source) = 0;
         colors.at(source) = Color::GRAY;

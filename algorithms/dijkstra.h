@@ -9,7 +9,6 @@
 #include "visitor.h"
 
 #include <algorithm>
-#include <cassert>
 #include <limits>
 #include <unordered_set>
 #include <vector>
@@ -78,7 +77,7 @@ public:
         if (fromDistance > distances_[from]) {
             return;
         }
-        assert(fromDistance == distances_[from]);
+        ASSERT(fromDistance == distances_[from]);
 
         for (const auto edgeId : graph_.GetOutgoingEdges(from)) {
             ExamineEdge(edgeId);
@@ -108,7 +107,7 @@ public:
      */
     template <class Container>
     void SetTargets(const Container& targets) {
-        assert(targets_.empty());
+        ASSERT(targets_.empty());
         for (const auto target : targets) {
             targets_.insert(target);
         }
