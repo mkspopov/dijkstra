@@ -60,7 +60,7 @@ class GraphBuilder {
 public:
     GraphBuilder() = default;
     explicit GraphBuilder(VertexId verticesCount);
-    explicit GraphBuilder(Graph&& graph);
+    explicit GraphBuilder(Graph graph);
 
     VertexId AddVertex();
 

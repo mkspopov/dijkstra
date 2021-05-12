@@ -11,13 +11,6 @@
 #include <tuple>
 #include <unordered_map>
 
-#define ASSERT(expression) do { \
-    if (!(expression)) {       \
-        std::string exprStr(#expression); \
-        throw std::runtime_error("Assertion failed: " + exprStr); \
-    }                           \
-    } while (false)             \
-
 #define RUN_TEST(test_function) do { \
     {                            \
     std::cerr << "Running " << #test_function << " ...\n"; \
@@ -55,6 +48,11 @@ private:
     Iterator begin_;
     Iterator end_;
 };
+
+template <class R>
+auto IRange(R&& r) {
+    return IteratorRange(r.begin(), r.end());
+}
 
 template <class Iterator, class Predicate>
 class FilterIterator : std::iterator<std::forward_iterator_tag, typename Iterator::value_type> {
@@ -238,6 +236,8 @@ struct Mapping {
         throw std::runtime_error(ss.str());                                    \
     }                                                                          \
 } while (false)                                                                \
+
+#define ASSERT(expression) ASSERT_EQUAL(expression, true)
 
 template <typename Range>
 auto ToVector(Range&& range) {

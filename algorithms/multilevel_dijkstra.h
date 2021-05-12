@@ -19,7 +19,7 @@ LevelId Level(
 }
 
 template <class G, class Transitions, class Queue>
-void MultiLevelDijkstra(
+void MultilevelDijkstra(
     const G& graph,
     std::vector<Weight>& distances,
     std::vector<Color>& colors,
@@ -29,8 +29,8 @@ void MultiLevelDijkstra(
     Queue& queue)
 {
     for (auto source : sources) {
-        distances[source] = 0;
-        colors[source] = Color::GRAY;
+        distances.at(source) = 0;
+        colors.at(source) = Color::GRAY;
         queue.Push({source, 0});
     }
 
@@ -40,32 +40,32 @@ void MultiLevelDijkstra(
         // std::priority_queue. This may slow down
         // code because of memory load of a random vertex
         // of the graph. So, measure time without it.
-        if (colors[from] == Color::BLACK) {
+        if (colors.at(from) == Color::BLACK) {
             continue;
         }
 
-        auto level = Level(graph, sources[0], targets[0], from);
-        auto cell = graph.GetCellId(from, level);
+        auto level = Level(graph, sources.at(0), targets.at(0), from);  // deal with many targets?
+//        auto cell = graph.GetCellId(from, level);
 
-        for (auto edgeId : transitions(graph, cell)) {
+        for (auto edgeId : transitions(graph, from, level)) {
             auto to = graph.GetTarget(edgeId);
             auto relaxedDist = dist + graph.GetEdgeProperties(edgeId).weight;
-            if (relaxedDist < distances[to]) {
-                distances[to] = relaxedDist;
-                if (colors[to] == Color::WHITE) {
-                    colors[to] = Color::GRAY;
+            if (relaxedDist < distances.at(to)) {
+                distances.at(to) = relaxedDist;
+                if (colors.at(to) == Color::WHITE) {
+                    colors.at(to) = Color::GRAY;
                     queue.Push({to, relaxedDist});
-                } else if (colors[to] == Color::GRAY) {
+                } else if (colors.at(to) == Color::GRAY) {
                     queue.Decrease({to, relaxedDist});
                 }
             }
         }
-        colors[from] = Color::BLACK;
+        colors.at(from) = Color::BLACK;
     }
 }
 
 template <class Queue, class G, class Transitions>
-auto MultiLevelDijkstra(
+auto MultilevelDijkstra(
     const G& graph,
     const std::vector<VertexId>& sources,
     const std::vector<VertexId>& targets,
@@ -74,6 +74,22 @@ auto MultiLevelDijkstra(
     std::vector<Weight> distances(graph.VerticesCount(), Dijkstra::INF);
     std::vector<Color> colors(graph.VerticesCount(), Color::WHITE);
     Queue queue;
-    MultiLevelDijkstra(graph, distances, colors, sources, targets, transitions, queue);
+    MultilevelDijkstra(graph, distances, colors, sources, targets, std::move(transitions), queue);
     return distances;
+}
+
+struct AllTransitions {
+    template <class G>
+    auto operator()(const G& graph, VertexId from, LevelId level) const {
+        return graph.GetOutgoingEdges(from, level);
+    }
+};
+
+template <class Queue, class G>
+auto MultilevelDijkstra(
+    const G& graph,
+    const std::vector<VertexId>& sources,
+    const std::vector<VertexId>& targets)
+{
+    return MultilevelDijkstra<Queue>(graph, sources, targets, AllTransitions{});
 }

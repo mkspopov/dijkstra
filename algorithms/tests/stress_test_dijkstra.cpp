@@ -1,8 +1,11 @@
-#include "shortest_path_algorithm.h"
+#include "contraction.h"
 #include "dijkstra.h"
 #include "dijkstra_prevrun.h"
 #include "bidirectional_dijkstra.h"
+#include "multilevel_dijkstra.h"
 #include "serializer.h"
+#include "shortest_path_algorithm.h"
+#include "topology_builders.h"
 #include "utils.h"
 
 #include <boost/graph/graph_traits.hpp>
@@ -95,12 +98,13 @@ void TestBidirectionalDijkstra() {
 void TestMultiLevelDijkstra() {
     const auto& d = CalcDistancesBoost();
 
-    ShortestPathAlgorithm<MultiLevelDijkstra> dijkstra(testGraph);
-    dijkstra.Preprocess();
-    dijkstra.FindShortestPathsWeights(0);
+    auto topology = BuildSimplyTopology(testGraph, 0);
+    MultilevelGraph mlg(testGraph, topology);
+    auto contracted = SimpleContraction(mlg);
 
     for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
-        ASSERT(dijkstra.GetShortestDistance(vertex) == d[vertex]);
+//        ASSERT_EQUAL(MultilevelDijkstra<StdHeap>(
+//            contracted, {vertex}, {(vertex + 1000) % testGraph.VerticesCount()}), d[vertex]);
     }
 }
 

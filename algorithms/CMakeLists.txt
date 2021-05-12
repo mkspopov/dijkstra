@@ -8,6 +8,7 @@ add_library(
     heap.h
     multilevel_dijkstra.h multilevel_dijkstra.cpp
     shortest_path_algorithm.h shortest_path_algorithm.cpp
+    topology_builders.h topology_builders.cpp
     visitor.h visitor.cpp
 )
 

@@ -17,7 +17,7 @@ struct HeapElement {
 
     bool operator>(const HeapElement& rhs) const {
         if (weight == rhs.weight) {
-            return vertex > rhs.vertex;
+            return vertex < rhs.vertex;
         }
         return weight > rhs.weight;
     }
@@ -28,6 +28,11 @@ struct HeapElement {
 
 class StdHeap {
 public:
+    template <class ...Args>
+    void Emplace(Args&&... args) {
+        heap_.emplace(std::forward<Args>(args)...);
+    }
+
     void Push(HeapElement t) {
         heap_.emplace(t);
     }

@@ -54,7 +54,7 @@ GraphBuilder::GraphBuilder(VertexId verticesCount) {
     graph_.adjacencyList_.resize(verticesCount);
 }
 
-GraphBuilder::GraphBuilder(Graph&& graph) : graph_(std::move(graph)) {
+GraphBuilder::GraphBuilder(Graph graph) : graph_(std::move(graph)) {
 }
 
 VertexId GraphBuilder::AddVertex() {

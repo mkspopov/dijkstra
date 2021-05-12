@@ -18,5 +18,6 @@ add_subdirectory(graph)
 target_link_libraries(dijkstra graph)
 
 add_subdirectory(perf)
-add_subdirectory(tests)
 add_subdirectory(utils)
+
+add_executable(my my.cpp)

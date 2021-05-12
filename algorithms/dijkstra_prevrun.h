@@ -43,9 +43,8 @@ public:
 
     Weight FindShortestPathWeight(VertexId source, VertexId target) {
         InitSearch(source, target);
-        while (!heap_.empty()) {
-            const auto [from, fromDistance] = heap_.top();
-            heap_.pop();
+        while (!heap_.Empty()) {
+            const auto [from, fromDistance] = heap_.Extract();
 
             if (from == target) {
                 return fromDistance;
@@ -66,9 +65,8 @@ public:
 
     void FindShortestPathsWeights(VertexId source) {
         InitSearch(source);
-        while (!heap_.empty()) {
-            const auto [from, fromDistance] = heap_.top();
-            heap_.pop();
+        while (!heap_.Empty()) {
+            const auto [from, fromDistance] = heap_.Extract();
             ProcessVertex(from, fromDistance);
         }
         prevRunDistances_ = distances_;
@@ -95,11 +93,11 @@ public:
                 DiscoverVertex(to);
                 distances_[to] = distance;
                 parents_[to] = from;
-                heap_.emplace(to, distance);
+                heap_.Emplace(to, distance);
             } else if (distances_[to] > distance) {
                 distances_[to] = distance;
                 parents_[to] = from;
-                heap_.emplace(to, distance);
+                heap_.Emplace(to, distance);
                 RelaxEdge(edgeId);
             } else {
                 NotRelaxed(edgeId);
@@ -131,7 +129,7 @@ public:
         DiscoverVertex(source);
         distances_[source] = START_WEIGHT;
         parents_[source] = source;
-        heap_.emplace(source, START_WEIGHT);
+        heap_.Emplace(source, START_WEIGHT);
     }
 
     void InitSearch(VertexId source, VertexId target) {
@@ -141,7 +139,7 @@ public:
         DiscoverVertex(source);
         distances_[source] = START_WEIGHT;
         parents_[source] = source;
-        heap_.emplace(source, START_WEIGHT);
+        heap_.Emplace(source, START_WEIGHT);
 
         if (!prevRunDistances_.empty()) {
             prevRunShortestPath_.clear();
@@ -192,15 +190,15 @@ private:
     }
 
     void ClearHeap() {
-        while (!heap_.empty()) {
-            heap_.pop();
+        while (!heap_.Empty()) {
+            heap_.Extract();
         }
     }
 
     const Graph& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
-    Heap<HeapElement> heap_;
+    StdHeap heap_;
 
     std::unordered_set<VertexId> targets_;
 

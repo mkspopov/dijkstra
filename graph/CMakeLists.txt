@@ -4,6 +4,7 @@ add_library(
     graph.h graph.cpp
     multilevel_graph.h multilevel_graph.cpp
     serializer.h serializer.cpp
+    topology.h topology.cpp
 )
 
 target_include_directories(graph PUBLIC ../utils)

@@ -13,6 +13,9 @@ add_executable(
 target_link_libraries(perf_tests ${Boost_LIBRARIES})
 target_link_libraries(perf_tests algorithms)
 
+set_property(DIRECTORY /home/mkspopov/CLionProjects/dijkstra
+    PROPERTY EP_UPDATE_DISCONNECTED 1)
+
 include(FetchContent)
 FetchContent_Declare(
     daw_json_link
