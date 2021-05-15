@@ -62,6 +62,9 @@ struct Topology {
 };
 
 struct CompactTopology {
+    void Dump(std::ostream& out) const;
+    void Load(std::istream& in);
+
     VertexId GetCellId(VertexId vertexId) const {
         return parents_.at(vertexId);
     }

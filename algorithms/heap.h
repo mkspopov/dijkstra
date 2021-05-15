@@ -11,9 +11,9 @@
 
 struct HeapElement {
     HeapElement(VertexId vertex, Weight weight)
-            : vertex(vertex)
-            , weight(weight) {
-    }
+        : vertex(vertex)
+        , weight(weight)
+    {}
 
     bool operator>(const HeapElement& rhs) const {
         if (weight == rhs.weight) {

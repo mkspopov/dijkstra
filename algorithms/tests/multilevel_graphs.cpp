@@ -31,7 +31,10 @@ MultilevelGraph BuildTestMlg() {
             {0, 0, 1, 1, 1, 0},
             {0, 0, 0, 0, 0, 0},
         },
-        {0, 6, 9, 11, 12}
+        {0, 6, 9, 11, 12},
+        {},
+        {},
+        {},
     };
 
     return MultilevelGraph(BuildTestGraph(), topology);

@@ -48,7 +48,7 @@ std::pair<Graph, CompactTopology> BuildSimplyTopology(const Graph& graph, LevelI
             for (EdgeId edgeId : topGraph.GetOutgoingEdges(from)) {
                 auto to = topGraph.GetTarget(edgeId);
                 if (topGraph.GetCellId(from) != topGraph.GetCellId(to)) {
-                    topGraph.AddEdge(topGraph.GetCellId(from), topGraph.GetCellId(to), level, topGraph.GetEdgeProperties(edgeId));
+                    topGraph.AddEdge(topGraph.GetCellId(from), topGraph.GetCellId(to), topGraph.GetEdgeProperties(edgeId));
                 }
             }
         }

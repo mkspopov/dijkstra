@@ -1,39 +1,26 @@
 #pragma once
 
 #include "multilevel_graph.h"
-#include "multilevel_dijkstra.h"
 
+#include <filesystem>
+#include <fstream>
 #include <unordered_map>
 
 struct IntermediateGraph {
-    IntermediateGraph(Graph graph, CompactTopology topology)
-            : builder_(std::move(graph))
-            , topology_(std::move(topology))
-            , vertices_(topology_.LevelsCount())
-    {
-        for (VertexId v = 0; v < builder_.graph_.VerticesCount(); ++v) {
-            vertices_.at(0).emplace(v, v);
-        }
-    }
+    IntermediateGraph() = default;
 
-    VertexId GetCellId(VertexId vertex, LevelId level) const {
-        ASSERT(vertex < VerticesCount());
-        return topology_.GetCellId(vertex, level);
-    }
+    IntermediateGraph(Graph graph, CompactTopology topology);
 
-//    VertexId GetCellId(VertexId vertex) const {
-//        ASSERT(vertex < VerticesCount());
-//        return topology_.GetCellId(vertex);
-//    }
+    void Dump(std::ostream& out) const;
 
-    VertexId GetTarget(EdgeId edgeId) const {
-        return builder_.graph_.GetTarget(edgeId);
-    }
+    VertexId GetCellId(VertexId vertex, LevelId level) const;
 
-    static inline std::vector<EdgeId> NO_EDGES;
-    static inline const auto EMPTY = IteratorRange(NO_EDGES.cbegin(), NO_EDGES.cend());
+    EdgeProperty GetEdgeProperties(EdgeId edgeId) const;
 
     auto GetOutgoingEdges(VertexId vertex, LevelId level) const {
+        static const std::vector<EdgeId> NO_EDGES;
+        static const auto EMPTY = IteratorRange(NO_EDGES.cbegin(), NO_EDGES.cend());
+
         ASSERT(vertex < VerticesCount());
         if (vertices_.at(level).contains(vertex)) {
             return builder_.graph_.GetOutgoingEdges(vertices_.at(level).at(vertex));
@@ -41,44 +28,25 @@ struct IntermediateGraph {
         return EMPTY;
     }
 
-    LevelId LevelsCount() const {
-        return topology_.LevelsCount();
-    }
 
-    VertexId VerticesCount() const {
-        return vertices_.at(0).size();
-//        return builder_.graph_.VerticesCount();
-    }
+    VertexId GetTarget(EdgeId edgeId) const;
 
-    auto GetEdgeProperties(EdgeId edgeId) const {
-        return builder_.graph_.GetEdgeProperties(edgeId);
-    }
+    LevelId LevelsCount() const;
 
-    LevelId MaxDistinctLevel(VertexId first, VertexId second) const {
-        ASSERT(first < VerticesCount());
-        ASSERT(second < VerticesCount());
-        return topology_.MaxDistinctLevel(first, second);
-    }
+    void Load(std::istream& in);
+
+    LevelId MaxDistinctLevel(VertexId first, VertexId second) const;
+
+    VertexId VerticesCount() const;
 
 private:
-    template <class TGraph>
-    friend IntermediateGraph SimpleContraction(const TGraph& mlg);
+    friend IntermediateGraph SimpleContraction(
+        const Graph& originalGraph,
+        const CompactTopology& topology);
 
-    void AddVertex(VertexId vertex, LevelId level) {
-        ASSERT(vertex < VerticesCount());
-        if (!vertices_.at(level).contains(vertex)) {
-            auto id = builder_.AddVertex();
-            vertices_.at(level).emplace(vertex, id);
-        }
-    }
+    void AddEdge(VertexId from, VertexId to, LevelId level, EdgeProperty edgeProperty);
 
-    void AddEdge(VertexId from, VertexId to, LevelId level, EdgeProperty edgeProperty) {
-        ASSERT(from < VerticesCount());
-        AddVertex(from, level);
-//        ASSERT(to < VerticesCount());
-//        AddVertex(to, level);
-        builder_.AddEdge(vertices_.at(level).at(from), to, std::move(edgeProperty));
-    }
+    void AddVertex(VertexId vertex, LevelId level);
 
     GraphBuilder builder_;
     CompactTopology topology_;
@@ -90,9 +58,13 @@ auto CellInnerTransitions(const IntermediateGraph& graph, VertexId vertex, Level
 struct CellInnerTransitionsS {
     VertexId cell_;
     LevelId level_;
-    CellInnerTransitionsS(VertexId cell, LevelId level) : cell_(cell), level_(level) {}
+    CellInnerTransitionsS(VertexId cell, LevelId level);
 
-    auto operator()(const IntermediateGraph& graph, VertexId vertex, LevelId level) const {
+    auto operator()(
+        const IntermediateGraph& graph,
+        VertexId vertex,
+        LevelId level) const
+    {
         auto filter = [this, &graph](EdgeId edgeId) {
             return graph.GetCellId(graph.GetTarget(edgeId), level_) == cell_;
         };
@@ -103,37 +75,9 @@ struct CellInnerTransitionsS {
     }
 };
 
-template <class TMLGraph>
-IntermediateGraph SimpleContraction(const TMLGraph& mlg) {
-    const auto& zeroLevelGraph = mlg.GetOriginalGraph();
-    IntermediateGraph graph(zeroLevelGraph, mlg.GetTopology());
-
-    for (LevelId level = 1; level + 1 < mlg.LevelsCount(); ++level) {
-        std::unordered_set<VertexId> border;
-        for (const auto& [edgeId, from, to] : zeroLevelGraph.GetEdges()) {
-            if (mlg.GetCellId(from, level) != mlg.GetCellId(to, level)) {
-                border.insert(from);
-                border.insert(to);
-                // Adding cut edge:
-                graph.AddEdge(from, to, level, zeroLevelGraph.GetEdgeProperties(edgeId));
-            }
-        }
-
-        for (auto from : border) {
-            auto distances = MultilevelDijkstra<StdHeap>(
-                graph,
-                {from},
-                {from},
-                CellInnerTransitionsS(mlg.GetCellId(from, level), level));
-            for (auto to : border) {
-                if (from != to && distances.at(to) < Dijkstra::INF) {
-                    graph.AddEdge(from, to, level, {distances.at(to)});
-                }
-            }
-        }
-    }
-    return graph;
-}
+IntermediateGraph SimpleContraction(
+    const Graph& originalGraph,
+    const CompactTopology& topology);
 
 //template <>
 //IntermediateGraph CliqueContraction(const MultilevelGraph& mlg) {

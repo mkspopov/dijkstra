@@ -25,8 +25,9 @@ public:
         return algorithm_.GetShortestDistance(target);
     }
 
-    void Preprocess() {
-        algorithm_.Preprocess();
+    template <class ...Args>
+    void Preprocess(Args&& ...args) {
+        algorithm_.Preprocess(std::forward<Args>(args)...);
     }
 
     std::string GetName() const {

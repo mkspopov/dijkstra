@@ -47,7 +47,7 @@ private:
         return id;
     }
 
-    void AddEdge(VertexId from, VertexId to, LevelId level, EdgeProperty edgeProperty) {
+    void AddEdge(VertexId from, VertexId to, EdgeProperty edgeProperty) {
         builder_.AddEdge(from, to, std::move(edgeProperty));
     }
 

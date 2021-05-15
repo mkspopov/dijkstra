@@ -1,5 +1,6 @@
 #pragma once
 
+#include "contraction.h"
 #include "dijkstra.h"
 #include "multilevel_graph.h"
 
@@ -29,12 +30,12 @@ void MultilevelDijkstra(
     Queue& queue)
 {
     // TODO: Deal with many targets.
-    ASSERT_EQUAL(targets.size(), 1);
+    ASSERT_EQUAL(targets.size(), 1ul);
 
     for (auto source : sources) {
         distances.at(source) = 0;
         colors.at(source) = Color::GRAY;
-        queue.Push({source, 0});
+        queue.Emplace(source, 0);
     }
 
     while (!queue.Empty()) {
@@ -57,7 +58,7 @@ void MultilevelDijkstra(
                 distances.at(to) = relaxedDist;
                 if (colors.at(to) == Color::WHITE) {
                     colors.at(to) = Color::GRAY;
-                    queue.Push({to, relaxedDist});
+                    queue.Emplace(to, relaxedDist);
                 } else if (colors.at(to) == Color::GRAY) {
                     queue.Decrease({to, relaxedDist});
                 }
@@ -96,3 +97,17 @@ auto MultilevelDijkstra(
 {
     return MultilevelDijkstra<Queue>(graph, sources, targets, AllTransitions{});
 }
+
+class MultilevelDijkstraAlgorithm : public Dijkstra {
+public:
+    explicit MultilevelDijkstraAlgorithm(const Graph& graph);
+
+    Weight FindShortestPathWeight(VertexId source, VertexId target);
+
+    void Preprocess(std::filesystem::path path);
+
+private:
+    const Graph& GetOriginalGraph() const;
+
+    IntermediateGraph graph_;
+};

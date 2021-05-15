@@ -12,10 +12,39 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
+#include <filesystem>
+#include <iostream>
+
 using namespace boost;
 
-const std::string path = "../../graphs/USA-road-d.NY.gr";
-const auto testGraph = GraphDeserializer(path).DimacsDeserialize();
+std::string FindFile(std::filesystem::path path) {
+    for (auto curDir = std::filesystem::current_path();
+            curDir != "/";
+            curDir = curDir.parent_path()) {
+        for (const auto& p : std::filesystem::recursive_directory_iterator(curDir)) {
+            if (!std::filesystem::is_directory(p)) {
+                auto str = p.path().string();
+                if (str.ends_with(path.string())) {
+                    return str;
+                }
+            }
+        }
+    }
+    return "";
+}
+
+const auto& TestGraph() {
+    static const std::string path = FindFile("graphs/USA-road-d.NY.gr");
+    static const auto testGraph = GraphDeserializer(path).DimacsDeserialize();
+    static bool logOnce = true;
+    if (logOnce) {
+        Log() << "Read testGraph from" << path
+              << ", vertices:" << testGraph.VerticesCount()
+              << ", edges:" << testGraph.EdgesCount();
+        logOnce = false;
+    }
+    return testGraph;
+}
 
 const std::vector<float>& CalcDistancesBoost() {
     using graph_t = adjacency_list<
@@ -27,17 +56,17 @@ const std::vector<float>& CalcDistancesBoost() {
     static std::vector<edge_t> edges;
     static std::vector<float> weights;
     if (!calculated) {
-        edges.reserve(testGraph.EdgesCount());
-        weights.reserve(testGraph.EdgesCount());
-        for (VertexId u = 0; u < testGraph.VerticesCount(); ++u) {
-            for (EdgeId edgeId : testGraph.GetOutgoingEdges(u)) {
-                edges.emplace_back(u, testGraph.GetTarget(edgeId));
-                weights.push_back(testGraph.GetEdgeProperties(edgeId).weight);
+        edges.reserve(TestGraph().EdgesCount());
+        weights.reserve(TestGraph().EdgesCount());
+        for (VertexId u = 0; u < TestGraph().VerticesCount(); ++u) {
+            for (EdgeId edgeId : TestGraph().GetOutgoingEdges(u)) {
+                edges.emplace_back(u, TestGraph().GetTarget(edgeId));
+                weights.push_back(TestGraph().GetEdgeProperties(edgeId).weight);
             }
         }
     }
 
-    static graph_t g(edges.begin(), edges.end(), weights.data(), testGraph.VerticesCount());
+    static graph_t g(edges.begin(), edges.end(), weights.data(), TestGraph().VerticesCount());
 
     static std::vector<vertex_descriptor> p(num_vertices(g));
     static std::vector<float> d(num_vertices(g));
@@ -53,11 +82,12 @@ const std::vector<float>& CalcDistancesBoost() {
 void TestDijkstra() {
     const auto& d = CalcDistancesBoost();
 
-    ShortestPathAlgorithm<Dijkstra> dijkstra(testGraph);
+    ShortestPathAlgorithm<Dijkstra> dijkstra(TestGraph());
     dijkstra.Preprocess();
+
     dijkstra.FindShortestPathsWeights(0);
 
-    for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
+    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount(); ++vertex) {
         ASSERT(dijkstra.GetShortestDistance(vertex) == d[vertex]);
     }
 }
@@ -65,19 +95,19 @@ void TestDijkstra() {
 void TestDijkstraPrevRun() {
     const auto& d = CalcDistancesBoost();
 
-    ShortestPathAlgorithm<PrevRunDijkstra> dijkstra(testGraph);
+    ShortestPathAlgorithm<PrevRunDijkstra> dijkstra(TestGraph());
     dijkstra.Preprocess();
     dijkstra.FindShortestPathsWeights(0);
 
-    VertexId target = testGraph.VerticesCount() / 2;
+    VertexId target = TestGraph().VerticesCount() / 2;
     while (d[target] == Dijkstra::INF) {
         --target;
     }
 
-    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(testGraph);
+    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(TestGraph());
     bidijkstra.Preprocess();
 
-    for (VertexId vertex = 0; vertex < testGraph.VerticesCount() / 10000; ++vertex) {
+    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount() / 10000; ++vertex) {
         auto my = dijkstra.FindShortestPathWeight(vertex, target);
         auto rightAnswer = bidijkstra.FindShortestPathWeight(vertex, target);
         ASSERT(my == rightAnswer);
@@ -87,10 +117,10 @@ void TestDijkstraPrevRun() {
 void TestBidirectionalDijkstra() {
     const auto& d = CalcDistancesBoost();
 
-    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(testGraph);
+    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(TestGraph());
     bidijkstra.Preprocess();
 
-    for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
+    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount(); ++vertex) {
         ASSERT(bidijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
     }
 }
@@ -98,21 +128,26 @@ void TestBidirectionalDijkstra() {
 void TestMultiLevelDijkstra() {
     const auto& d = CalcDistancesBoost();
 
-    auto topology = BuildSimplyTopology(testGraph, 0);
-    MultilevelGraph mlg(testGraph, topology);
-    auto contracted = SimpleContraction(mlg);
+    std::filesystem::path preprocessed = "/tmp/multilevel_test_graph.graph2";
+    ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(TestGraph());
+    Log() << "Preprocessing...";
+    algorithm.Preprocess(preprocessed);
 
-    for (VertexId vertex = 0; vertex < testGraph.VerticesCount(); ++vertex) {
-//        ASSERT_EQUAL(MultilevelDijkstra<StdHeap>(
-//            contracted, {vertex}, {(vertex + 1000) % testGraph.VerticesCount()}), d[vertex]);
+    Log() << "Searching paths...";
+    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount(); ++vertex) {
+        std::cerr << '.';
+        std::cerr.flush();
+        ASSERT_EQUAL(algorithm.FindShortestPathWeight(0, vertex), d[vertex]);
     }
 }
 
 int main() {
     std::cerr << "Running tests ...\n";
+    TestGraph();
+    CalcDistancesBoost();
 //    RUN_TEST(TestDijkstra);
+//    RUN_TEST(TestDijkstraPrevRun);
+//    RUN_TEST(TestBidirectionalDijkstra);
     RUN_TEST(TestMultiLevelDijkstra);
-    RUN_TEST(TestDijkstraPrevRun);
-    RUN_TEST(TestBidirectionalDijkstra);
     std::cerr << "Done tests.\n";
 }

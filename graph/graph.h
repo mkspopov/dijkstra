@@ -7,23 +7,28 @@
 #include "types.h"
 #include "utils.h"
 
+#include <iostream>
 #include <vector>
 
 struct Edge {
+    Edge() = default;
+
     Edge(EdgeId id, VertexId from, VertexId to) : id(id), from(from), to(to) {
     }
 
     EdgeId id;
     VertexId from;
     VertexId to;
+
+    bool operator==(const Edge& rhs) const = default;
 };
+
+std::ostream& operator<<(std::ostream& os, const Edge& edge);
 
 struct EdgeProperty {
     Weight weight;
 
-    bool operator==(const EdgeProperty& rhs) const {
-        return weight == rhs.weight;
-    }
+    bool operator==(const EdgeProperty& rhs) const = default;
 };
 
 std::ostream& operator<<(std::ostream& os, const EdgeProperty& edgeProperty);
@@ -31,6 +36,9 @@ std::ostream& operator<<(std::ostream& os, const EdgeProperty& edgeProperty);
 class Graph {
 public:
     Graph() = default;
+
+    void Dump(std::ostream& os) const;
+    void Load(std::istream& is);
 
     EdgeProperty GetEdgeProperties(EdgeId edgeId) const;
 

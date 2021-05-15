@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package graph;
+
+message Edge {
+    uint32 id = 1;
+    uint32 from = 2;
+    uint32 to = 3;
+}
+
+message EdgeProperties {
+    float weight = 1;
+}
+
+message Graph {
+  message Adj {
+      repeated uint32 out_edge_ids = 1;
+  }
+
+  repeated Edge edges = 1;
+  repeated EdgeProperties edge_properties = 2;
+  repeated Adj adj_list = 3;
+}
+
+message Topology {
+  repeated uint32 parents = 1;
+  repeated uint32 sizes = 2;
+}
+
+message VertexMap {
+  map<uint32, uint32> vertex_map = 1;
+}
+
+message IntermediateGraph {
+  repeated VertexMap vertices = 1;
+}

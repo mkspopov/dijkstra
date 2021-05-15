@@ -249,3 +249,32 @@ auto ToVector(Range&& range) {
     std::copy(range.begin(), range.end(), std::back_inserter(v));
     return v;
 }
+
+template <class T>
+void Dump(std::ostream& os, const T& value) {
+    os.write(reinterpret_cast<const char*>(&value), sizeof(value));
+}
+
+template <class T>
+void Dump(std::ostream& os, const std::vector<T>& vector) {
+    auto size = vector.size();
+    os.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    for (const auto& value : vector) {
+        Dump(os, value);
+    }
+}
+
+template <class T>
+void Load(std::istream& is, T& value) {
+    is.read(reinterpret_cast<char*>(&value), sizeof(value));
+}
+
+template <class T>
+void Load(std::istream& is, std::vector<T>& vector) {
+    size_t size;
+    Load(is, size);
+    vector.resize(size);
+    for (auto& value : vector) {
+        Load(is, value);
+    }
+}

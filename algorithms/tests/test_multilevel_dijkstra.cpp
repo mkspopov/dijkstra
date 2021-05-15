@@ -1,5 +1,6 @@
 #include "contraction.h"
 #include "multilevel_graphs.h"
+#include "multilevel_dijkstra.h"
 #include "topology_builders.h"
 
 #include <iostream>
@@ -33,7 +34,7 @@ void TestMultilevelDijkstra() {
     auto graph = BuildTestGraph();
     auto [topGraph, topology] = BuildSimplyTopology(graph, 4);
     CompactMultilevelGraph mlg(graph, topGraph, topology);
-    auto contracted = SimpleContraction(mlg);
+    auto contracted = SimpleContraction(graph, topology);
 
     std::vector<std::vector<Weight>> answer{
         {0, 65, 48, 52, 32, 1},

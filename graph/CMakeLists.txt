@@ -8,4 +8,6 @@ add_library(
 )
 
 target_include_directories(graph PUBLIC ../utils)
-target_link_libraries(graph utils)
+target_link_libraries(graph messages utils)
+
+add_subdirectory(tests)
