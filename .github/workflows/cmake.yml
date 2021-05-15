@@ -2,9 +2,9 @@ name: CMake
 
 on: [push]
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+#env:
+#  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+#  BUILD_TYPE: Release
 
 jobs:
   build:
@@ -14,32 +14,57 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Apt update
-      run: sudo apt-get update
-    - name: Apt install dependencies
-      run: sudo apt-get install libboost-all-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install libboost-all-dev
 
     - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: |
+        cmake -E make_directory ${{github.workspace}}/build
+        cmake -E make_directory ${{github.workspace}}/asan_build
+        cmake -E make_directory ${{github.workspace}}/tsan_build
 
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cmake --build . --config $BUILD_TYPE
-
+      run: |
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release
+        cmake --build . -j 8
     - name: UnitTest
-      working-directory: ${{github.workspace}}/build/tests
       shell: bash
       timeout-minutes: 1
-      run: ./unit_tests
-
+      run: ctest -C Release test_dump_and_load -R "^test" --verbose
     - name: StressTest
-      working-directory: ${{github.workspace}}/build/tests
+      shell: bash
+      timeout-minutes: 5
+      run: ctest -C Release test_dump_and_load -R "^stress_test" --verbose
+
+    - name: AsanBuild
+      working-directory: ${{github.workspace}}/asan_build
+      shell: bash
+      run: |
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=ASAN
+        cmake --build . -j 8
+    - name: UnitTest
       shell: bash
       timeout-minutes: 1
-      run: ./stress_tests
+      run: ctest -C Release -R "^test" --verbose
+    - name: StressTest
+      shell: bash
+      timeout-minutes: 1
+      run: ctest -C Release -R "^stress_test" --verbose
+
+    - name: TsanBuild
+      working-directory: ${{github.workspace}}/tsan_build
+      shell: bash
+      run: |
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=TSAN
+        cmake --build . -j 8
+    - name: UnitTest
+      shell: bash
+      timeout-minutes: 1
+      run: ctest -C Release -R "^test" --verbose
+    - name: StressTest
+      shell: bash
+      timeout-minutes: 1
+      run: ctest -C Release -R "^stress_test" --verbose

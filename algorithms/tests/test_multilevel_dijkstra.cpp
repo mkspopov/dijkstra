@@ -84,7 +84,7 @@ void TestMultiLevelDijkstraAlgorithm() {
 
 int main() {
     std::cerr << "Running tests ...\n";
-//    RUN_TEST(TestMultilevelDijkstra);
+    RUN_TEST(TestMultilevelDijkstra);
     RUN_TEST(TestMultiLevelDijkstraAlgorithm);
     std::cerr << "Done tests.\n";
 }

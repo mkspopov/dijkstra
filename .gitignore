@@ -1,3 +1,6 @@
 # Project exclude paths
 /cmake-build-*
 .idea
+build
+asan_build
+tsan_build

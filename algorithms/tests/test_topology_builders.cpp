@@ -4,7 +4,12 @@
 void TestSimpleBuilder() {
     const auto graph = BuildTestGraph();
     auto topGraph = BuildSimplyTopology(graph, 4);
-    std::cerr << "a";
+    ASSERT_EQUAL(topGraph.second.parents_.size(), 11ul);
+    // 012 3  45
+    // 677 8  66
+    // 999 10 99
+    // 11 ...
+    ASSERT_EQUAL(topGraph.second.parents_, std::vector<VertexId>({6, 7, 7, 8, 6, 6, 9, 9, 10, 11, 11}));
 }
 
 int main() {
