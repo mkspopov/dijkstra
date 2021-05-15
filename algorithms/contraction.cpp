@@ -1,7 +1,6 @@
 #include "contraction.h"
 #include "multilevel_dijkstra.h"
 
-
 #include <iostream>
 #include <vector>
 
@@ -30,16 +29,10 @@ void IntermediateGraph::AddVertex(VertexId vertex, LevelId level) {
     }
 }
 
-void IntermediateGraph::Dump(std::ostream& out) const {
-//    builder_.graph_.Dump(out);
-//    topology_.Dump(out);
-//    graph::IntermediateGraph graph;
-//    for (const auto& vertexMap : vertices_) {
-//        auto map = graph.add_vertices();
-//        map->mutable_vertex_map()->insert(vertexMap.begin(), vertexMap.end());
-//        Log() << "Added vertices" << map->vertex_map().size();
-//    }
-//    graph.SerializeToOstream(&out);
+void IntermediateGraph::Dump(std::ostream& os) const {
+    builder_.graph_.Dump(os);
+    topology_.Dump(os);
+    ::Dump(os, vertices_);
 }
 
 VertexId IntermediateGraph::GetCellId(VertexId vertex, LevelId level) const {
@@ -59,14 +52,10 @@ LevelId IntermediateGraph::LevelsCount() const {
     return topology_.LevelsCount();
 }
 
-void IntermediateGraph::Load(std::istream& in) {
-//    builder_.graph_.Load(in);
-//    topology_.Load(in);
-//    graph::IntermediateGraph graph;
-//    graph.ParseFromIstream(&in);
-//    for (const auto& map : graph.vertices()) {
-//        vertices_.emplace_back(map.vertex_map().begin(), map.vertex_map().end());
-//    }
+void IntermediateGraph::Load(std::istream& is) {
+    builder_.graph_.Load(is);
+    topology_.Load(is);
+    ::Load(is, vertices_);
 }
 
 LevelId IntermediateGraph::MaxDistinctLevel(VertexId first, VertexId second) const {

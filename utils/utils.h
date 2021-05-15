@@ -20,12 +20,17 @@
     }                                \
     } while (false)
 
-template <class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& arr) {
-    for (const auto& elem : arr) {
-        os << elem << ' ';
+template <class F, class S>
+std::ostream& operator<<(std::ostream& os, const std::pair<F, S>& pair) {
+    os << pair.first << ' ' << pair.second;
+    return os;
+}
+
+template <class ...Args, template<class...> class Container>
+std::ostream& operator<<(std::ostream& os, const Container<Args...>& container) {
+    for (const auto& value : container) {
+        os << value << ' ';
     }
-//    os << std::endl;
     return os;
 }
 
@@ -248,18 +253,44 @@ auto ToVector(Range&& range) {
 }
 
 template <class T>
+void Dump(std::ostream& os, const T& value);
+
+template <class T>
+void Dump(std::ostream& os, const std::vector<T>& vector);
+
+template <class K, class V, template <class...> class Map>
+void Dump(std::ostream& os, const Map<K, V>& map);
+
+template <class T>
 void Dump(std::ostream& os, const T& value) {
     os.write(reinterpret_cast<const char*>(&value), sizeof(value));
 }
 
 template <class T>
 void Dump(std::ostream& os, const std::vector<T>& vector) {
-    auto size = vector.size();
-    os.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    Dump(os, vector.size());
     for (const auto& value : vector) {
         Dump(os, value);
     }
 }
+
+template <class K, class V, template <class...> class Map>
+void Dump(std::ostream& os, const Map<K, V>& map) {
+    Dump(os, map.size());
+    for (const auto& [key, value] : map) {
+        Dump(os, key);
+        Dump(os, value);
+    }
+}
+
+template <class T>
+void Load(std::istream& is, T& value);
+
+template <class T>
+void Load(std::istream& is, std::vector<T>& vector);
+
+template <class K, class V, template<class...> class Map>
+void Load(std::istream& is, Map<K, V>& map);
 
 template <class T>
 void Load(std::istream& is, T& value) {
@@ -273,5 +304,18 @@ void Load(std::istream& is, std::vector<T>& vector) {
     vector.resize(size);
     for (auto& value : vector) {
         Load(is, value);
+    }
+}
+
+template <class K, class V, template<class...> class Map>
+void Load(std::istream& is, Map<K, V>& map) {
+    size_t size;
+    Load(is, size);
+    for (size_t i = 0; i < size; ++i) {
+        K key;
+        V value;
+        Load(is, key);
+        Load(is, value);
+        map.emplace(std::move(key), std::move(value));
     }
 }

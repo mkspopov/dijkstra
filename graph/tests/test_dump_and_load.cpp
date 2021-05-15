@@ -24,14 +24,15 @@ Graph BuildTestGraph() {
 
 void TestDumpAndLoad() {
     const auto graph = BuildTestGraph();
+    const auto path = "/tmp/TestDumpAndLoad.graph";
     {
-        std::ofstream out("/tmp/TestDumpAndLoad.graph");
+        std::ofstream out(path, std::ios::binary);
         graph.Dump(out);
         graph.Dump(out);
     }
     Graph loaded;
     {
-        std::ifstream in("/tmp/TestDumpAndLoad.graph");
+        std::ifstream in(path, std::ios::binary);
         loaded.Load(in);
         loaded.Load(in);
     }

@@ -21,6 +21,12 @@ add_executable(
     test_topology_builders.cpp
 )
 
+add_executable(
+    test_mlg_dump_and_load
+    multilevel_graphs.cpp
+    test_mlg_dump_and_load.cpp
+)
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)

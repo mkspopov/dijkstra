@@ -43,6 +43,7 @@ private:
     friend IntermediateGraph SimpleContraction(
         const Graph& originalGraph,
         const CompactTopology& topology);
+    friend void TestDumpAndLoad();
 
     void AddEdge(VertexId from, VertexId to, LevelId level, EdgeProperty edgeProperty);
 

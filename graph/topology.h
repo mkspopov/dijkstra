@@ -25,6 +25,9 @@ struct Topology {
 };
 
 struct CompactTopology {
+    CompactTopology() = default;
+    CompactTopology(const Topology& topology);
+
     void Dump(std::ostream& os) const;
     void Load(std::istream& is);
 

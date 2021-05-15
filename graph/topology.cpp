@@ -49,6 +49,20 @@ LevelId Topology::MaxDistinctLevel(VertexId first, VertexId second) const {
     return firstLevel - 1;
 }
 
+CompactTopology::CompactTopology(const Topology& topology)
+    : parents_(topology.parents_)
+    , sizes_(topology.sizes_)
+{
+    if (parents_.empty()) {
+        for (const auto& [level, cellIds] : Enumerate(topology.cells_)) {
+            for (auto cellId : cellIds) {
+                auto parentId = cellId + sizes_[level];
+                parents_.push_back(parentId);
+            }
+        }
+    }
+}
+
 void CompactTopology::Dump(std::ostream& os) const {
     ::Dump(os, parents_);
     ::Dump(os, sizes_);
