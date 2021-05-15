@@ -17,7 +17,26 @@ target_link_libraries(dijkstra algorithms)
 add_subdirectory(graph)
 target_link_libraries(dijkstra graph)
 
-add_subdirectory(perf)
+#add_subdirectory(perf)
 add_subdirectory(utils)
 
 add_executable(my my.cpp)
+
+set(TESTS_TIMEOUT 1)
+
+enable_testing()
+
+add_test(test_dump_and_load graph/tests/test_dump_and_load)
+add_test(test_mlg_dump_and_load algorithms/tests/test_mlg_dump_and_load)
+add_test(test_topology_builders algorithms/tests/test_topology_builders)
+add_test(test_multilevel_graph algorithms/tests/test_multilevel_graph)
+add_test(test_multilevel_dijkstra algorithms/tests/test_multilevel_dijkstra)
+
+set_tests_properties(
+    test_dump_and_load
+    test_mlg_dump_and_load
+    test_topology_builders
+    test_multilevel_graph
+    test_multilevel_dijkstra
+    PROPERTIES TIMEOUT ${TESTS_TIMEOUT})
+

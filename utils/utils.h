@@ -20,16 +20,24 @@
     }                                \
     } while (false)
 
-template <class F, class S>
-std::ostream& operator<<(std::ostream& os, const std::pair<F, S>& pair) {
+template <class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& vector) {
+    for (const auto& elem : vector) {
+        os << elem << ' ';
+    }
+    return os;
+}
+
+template <class K, class V>
+std::ostream& operator<<(std::ostream& os, const std::pair<K, V>& pair) {
     os << pair.first << ' ' << pair.second;
     return os;
 }
 
-template <class ...Args, template<class...> class Container>
-std::ostream& operator<<(std::ostream& os, const Container<Args...>& container) {
-    for (const auto& value : container) {
-        os << value << ' ';
+template <class K, class V, class _1, class _2, class _3, template<class...> class Map>
+std::ostream& operator<<(std::ostream& os, const Map<K, V, _1, _2, _3>& map) {
+    for (const auto& elem : map) {
+        os << elem << ' ';
     }
     return os;
 }
