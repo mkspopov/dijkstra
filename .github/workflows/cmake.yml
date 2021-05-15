@@ -31,13 +31,15 @@ jobs:
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release
         cmake --build . -j 8
     - name: UnitTest
+      working-directory: ${{github.workspace}}/build
       shell: bash
       timeout-minutes: 1
-      run: ctest -C Release test_dump_and_load -R "^test" --verbose
+      run: ctest -C Release -R "^test" --verbose
     - name: StressTest
+      working-directory: ${{github.workspace}}/build
       shell: bash
       timeout-minutes: 5
-      run: ctest -C Release test_dump_and_load -R "^stress_test" --verbose
+      run: ctest -C Release -R "^stress_test" --verbose
 
     - name: AsanBuild
       working-directory: ${{github.workspace}}/asan_build
@@ -46,10 +48,12 @@ jobs:
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=ASAN
         cmake --build . -j 8
     - name: UnitTest
+      working-directory: ${{github.workspace}}/asan_build
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^test" --verbose
     - name: StressTest
+      working-directory: ${{github.workspace}}/asan_build
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^stress_test" --verbose
@@ -61,10 +65,12 @@ jobs:
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=TSAN
         cmake --build . -j 8
     - name: UnitTest
+      working-directory: ${{github.workspace}}/tsan_build
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^test" --verbose
     - name: StressTest
+      working-directory: ${{github.workspace}}/tsan_build
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^stress_test" --verbose
