@@ -17,6 +17,8 @@
 
 using namespace boost;
 
+static VertexId NUM_VERTICES = 1000;
+
 std::string FindFile(std::filesystem::path path) {
     for (auto curDir = std::filesystem::current_path();
             curDir != "/";
@@ -87,9 +89,22 @@ void TestDijkstra() {
 
     dijkstra.FindShortestPathsWeights(0);
 
-    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount(); ++vertex) {
+    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
         ASSERT(dijkstra.GetShortestDistance(vertex) == d[vertex]);
     }
+}
+
+void TestDijkstraHonest() {
+    const auto& d = CalcDistancesBoost();
+
+    ShortestPathAlgorithm<Dijkstra> dijkstra(TestGraph());
+    dijkstra.Preprocess();
+
+    Timer timer;
+    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
+        ASSERT(dijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
+    }
+    Log() << "Paths were found in" << timer.ElapsedMs() << "ms";
 }
 
 void TestDijkstraPrevRun() {
@@ -107,7 +122,7 @@ void TestDijkstraPrevRun() {
     ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(TestGraph());
     bidijkstra.Preprocess();
 
-    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount() / 10000; ++vertex) {
+    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
         auto my = dijkstra.FindShortestPathWeight(vertex, target);
         auto rightAnswer = bidijkstra.FindShortestPathWeight(vertex, target);
         ASSERT(my == rightAnswer);
@@ -120,34 +135,41 @@ void TestBidirectionalDijkstra() {
     ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(TestGraph());
     bidijkstra.Preprocess();
 
-    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount(); ++vertex) {
+    Timer timer;
+    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
         ASSERT(bidijkstra.FindShortestPathWeight(0, vertex) == d[vertex]);
     }
+    Log() << "Paths were found in" << timer.ElapsedMs() << "ms";
 }
 
 void TestMultiLevelDijkstra() {
     const auto& d = CalcDistancesBoost();
 
-    std::filesystem::path preprocessed = "/tmp/multilevel_test_graph.graph2";
+    std::filesystem::path path = "/tmp/tests/multilevel_test_graph.graph";
     ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(TestGraph());
     Log() << "Preprocessing...";
-    algorithm.Preprocess(preprocessed);
+    const LevelId levels = 10;
+    algorithm.Preprocess(path, levels);
 
     Log() << "Searching paths...";
-    for (VertexId vertex = 0; vertex < TestGraph().VerticesCount(); ++vertex) {
-        std::cerr << '.';
-        std::cerr.flush();
+    Timer timer;
+    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
         ASSERT_EQUAL(algorithm.FindShortestPathWeight(0, vertex), d[vertex]);
     }
+    Log() << "Paths were found in" << timer.ElapsedMs() << "ms";
 }
 
 int main() {
     std::cerr << "Running tests ...\n";
     TestGraph();
     CalcDistancesBoost();
-//    RUN_TEST(TestDijkstra);
-//    RUN_TEST(TestDijkstraPrevRun);
-//    RUN_TEST(TestBidirectionalDijkstra);
+
+    NUM_VERTICES = 1000;
+
     RUN_TEST(TestMultiLevelDijkstra);
+    RUN_TEST(TestDijkstra);
+    RUN_TEST(TestDijkstraHonest);
+//    RUN_TEST(TestDijkstraPrevRun);
+    RUN_TEST(TestBidirectionalDijkstra);
     std::cerr << "Done tests.\n";
 }

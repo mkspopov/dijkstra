@@ -8,7 +8,8 @@ MultilevelDijkstraAlgorithm::MultilevelDijkstraAlgorithm(const Graph& graph)
 
 Weight MultilevelDijkstraAlgorithm::FindShortestPathWeight(VertexId source, VertexId target) {
     InitSearch(source);
-    MultilevelDijkstra(graph_, distances_, colors_, {source}, {target}, AllTransitions{}, heap_);
+    auto& dijkstraVisitor = *this;
+    MultilevelDijkstra<Finish::FIRST_TARGET>(graph_, distances_, colors_, {source}, {target}, AllTransitions{}, heap_, dijkstraVisitor);
     return distances_[target];
 }
 
@@ -16,7 +17,7 @@ const Graph& MultilevelDijkstraAlgorithm::GetOriginalGraph() const {
     return Dijkstra::graph_;
 }
 
-void MultilevelDijkstraAlgorithm::Preprocess(std::filesystem::path path) {
+void MultilevelDijkstraAlgorithm::Preprocess(std::filesystem::path path, LevelId levels) {
     Dijkstra::Preprocess();
 
     if (!path.empty()) {
@@ -27,9 +28,9 @@ void MultilevelDijkstraAlgorithm::Preprocess(std::filesystem::path path) {
             return;
         }
     }
-    graph_ = IntermediateGraph(SimpleContraction(
+    graph_ = SimpleContraction(
         GetOriginalGraph(),
-        BuildSimplyTopology(GetOriginalGraph(), 3).second));
+        BuildSimplyTopology(GetOriginalGraph(), levels).second);
     std::ofstream out(path, std::ios::binary);
     if (out.is_open()) {
         Log() << "Dumping to" << path;

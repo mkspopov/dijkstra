@@ -24,7 +24,7 @@ Graph BuildTestGraph() {
 
 void TestDumpAndLoad() {
     const auto graph = BuildTestGraph();
-    const auto path = "/tmp/TestDumpAndLoad.graph";
+    const auto path = "/tmp/tests/TestDumpAndLoad.graph";
     {
         std::ofstream out(path, std::ios::binary);
         graph.Dump(out);

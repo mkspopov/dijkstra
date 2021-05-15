@@ -54,6 +54,11 @@ VertexId Dijkstra::ProcessVertex() {
 
 void Dijkstra::ProcessVertex(VertexId from, float fromDistance) {
     ExamineVertex(from);
+    const auto erasedCount = targets_.erase(from);
+    if (erasedCount > 0 && targets_.empty()) {
+        ClearHeap();
+        return;
+    }
 
     if (fromDistance > distances_[from]) {
         return;
@@ -76,14 +81,14 @@ void Dijkstra::ProcessVertex(VertexId from, float fromDistance) {
                 DiscoverVertex(to);
                 heap_.Emplace(to, distance);
                 colors_[to] = Color::GRAY;
-                RelaxEdge(edgeId);
+                EdgeRelaxed(edgeId);
             } else {
                 ASSERT(colors_[to] == Color::GRAY);
                 heap_.Decrease({to, distance});
-                RelaxEdge(edgeId);
+                EdgeRelaxed(edgeId);
             }
         } else {
-            NotRelaxed(edgeId);
+            EdgeNotRelaxed(edgeId);
         }
     }
 
@@ -103,24 +108,23 @@ void Dijkstra::InitSearch(VertexId source) {
     colors_[source] = Color::GRAY;
 }
 
-void Dijkstra::NotRelaxed(EdgeId) {
-}
-
-void Dijkstra::RelaxEdge(EdgeId) {
+void Dijkstra::DiscoverVertex(VertexId vertex) {
+    affectedVertices_.push_back(vertex);
 }
 
 void Dijkstra::ExamineEdge(EdgeId) {
 }
 
-void Dijkstra::ExamineVertex(VertexId vertex) {
-    const auto erasedCount = targets_.erase(vertex);
-    if (erasedCount > 0 && targets_.empty()) {
-        ClearHeap();
-    }
+void Dijkstra::ExamineVertex(VertexId) {
 }
 
-void Dijkstra::DiscoverVertex(VertexId vertex) {
-    affectedVertices_.push_back(vertex);
+void Dijkstra::EdgeNotRelaxed(EdgeId) {
+}
+
+void Dijkstra::EdgeRelaxed(EdgeId) {
+}
+
+void Dijkstra::FinishVertex(VertexId) {
 }
 
 void Dijkstra::Clear() {

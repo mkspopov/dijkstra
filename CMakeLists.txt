@@ -22,8 +22,6 @@ add_subdirectory(utils)
 
 add_executable(my my.cpp)
 
-set(TESTS_TIMEOUT 1)
-
 enable_testing()
 
 add_test(test_dump_and_load graph/tests/test_dump_and_load)
@@ -38,5 +36,15 @@ set_tests_properties(
     test_topology_builders
     test_multilevel_graph
     test_multilevel_dijkstra
-    PROPERTIES TIMEOUT ${TESTS_TIMEOUT})
+    PROPERTIES TIMEOUT 1
+)
 
+add_test(stress_test algorithms/tests/stress_tests)
+set_tests_properties(
+    stress_test
+    PROPERTIES TIMEOUT 300
+)
+
+add_custom_target(build-time-make-directory ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory /tmp/tests/
+)

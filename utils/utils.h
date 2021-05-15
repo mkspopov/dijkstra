@@ -11,6 +11,12 @@
 #include <tuple>
 #include <unordered_map>
 
+template <typename To, typename From>
+To ContainerCast(From&& from) {
+    using std::begin; using std::end;
+    return To(begin(from), end(from));
+}
+
 #define RUN_TEST(test_function) do { \
     {                            \
     std::cerr << "Running " << #test_function << " ...\n"; \
@@ -173,6 +179,7 @@ public:
     Timer();
 
     uint64_t Elapsed() const;
+    uint64_t ElapsedMs() const;
 
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;

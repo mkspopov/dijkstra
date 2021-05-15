@@ -6,7 +6,7 @@
 
 void TestDumpAndLoad() {
     const auto mlg = BuildTestMlg();
-    const auto path = "/tmp/TestMlgDumpAndLoad.graph";
+    const auto path = "/tmp/tests/TestMlgDumpAndLoad.graph";
 
     auto contracted = SimpleContraction(mlg.GetOriginalGraph(), mlg.GetTopology());
     {

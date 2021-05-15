@@ -3,3 +3,8 @@
 //
 
 #include "visitor.h"
+
+DijkstraVisitor& GetTrivialVisitor() {
+    static DijkstraVisitor visitor;
+    return visitor;
+}

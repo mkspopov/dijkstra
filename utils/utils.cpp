@@ -28,6 +28,11 @@ uint64_t Timer::Elapsed() const {
     return (std::chrono::high_resolution_clock::now() - start_).count();
 }
 
+uint64_t Timer::ElapsedMs() const {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::high_resolution_clock::now() - start_).count();
+}
+
 std::mt19937& GetRng() {
     static std::mt19937 gen;
     return gen;

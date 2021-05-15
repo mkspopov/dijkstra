@@ -3,6 +3,7 @@
 #include "contraction.h"
 #include "dijkstra.h"
 #include "multilevel_graph.h"
+#include "visitor.h"
 
 /*
  * MultiLevelGraph is not used to calculate single-to-all shortest paths.
@@ -19,20 +20,28 @@ LevelId Level(
     return std::min(graph.MaxDistinctLevel(source, vertex), graph.MaxDistinctLevel(target, vertex));
 }
 
-template <class G, class Transitions, class Queue>
+enum class Finish {
+    ALL_VERTICES,
+    ALL_TARGETS,
+    FIRST_TARGET,
+};
+
+template <Finish FinishStrategy = Finish::ALL_VERTICES, class Queue, class G, class Transitions, class Visitor>
 void MultilevelDijkstra(
     const G& graph,
     std::vector<Weight>& distances,
     std::vector<Color>& colors,
     const std::vector<VertexId>& sources,
-    const std::vector<VertexId>& targets,
+    const std::unordered_set<VertexId>& targets,
     Transitions transitions,
-    Queue& queue)
+    Queue& queue,
+    Visitor& visitor)
 {
     // TODO: Deal with many targets.
     ASSERT_EQUAL(targets.size(), 1ul);
 
     for (auto source : sources) {
+        visitor.DiscoverVertex(source);
         distances.at(source) = 0;
         colors.at(source) = Color::GRAY;
         queue.Emplace(source, 0);
@@ -40,6 +49,14 @@ void MultilevelDijkstra(
 
     while (!queue.Empty()) {
         auto [from, dist] = queue.Extract();
+        visitor.ExamineVertex(from);
+        if constexpr (FinishStrategy == Finish::FIRST_TARGET) {
+            if (targets.contains(from)) {
+                return;
+            }
+        } else if constexpr (FinishStrategy == Finish::ALL_TARGETS) {
+            // TODO:
+        }
         // TODO: Optional check to easily deal with
         // std::priority_queue. This may slow down
         // code because of memory load of a random vertex
@@ -48,37 +65,45 @@ void MultilevelDijkstra(
             continue;
         }
 
-        auto level = Level(graph, sources.at(0), targets.at(0), from);  // deal with many targets?
+        auto level = Level(graph, sources.at(0), *targets.begin(), from);  // deal with many targets?
 //        auto cell = graph.GetCellId(from, level);
 
         for (auto edgeId : transitions(graph, from, level)) {
+            visitor.ExamineEdge(edgeId);
             auto to = graph.GetTarget(edgeId);
             auto relaxedDist = dist + graph.GetEdgeProperties(edgeId).weight;
             if (relaxedDist < distances.at(to)) {
                 distances.at(to) = relaxedDist;
                 if (colors.at(to) == Color::WHITE) {
+                    visitor.DiscoverVertex(to);
                     colors.at(to) = Color::GRAY;
                     queue.Emplace(to, relaxedDist);
                 } else if (colors.at(to) == Color::GRAY) {
                     queue.Decrease({to, relaxedDist});
                 }
+                visitor.EdgeRelaxed(edgeId);
+            } else {
+                visitor.EdgeNotRelaxed(edgeId);
             }
         }
         colors.at(from) = Color::BLACK;
+        visitor.FinishVertex(from);
     }
 }
 
-template <class Queue, class G, class Transitions>
+template <class Queue, class G, class Transitions, class Visitor>
 auto MultilevelDijkstra(
     const G& graph,
     const std::vector<VertexId>& sources,
     const std::vector<VertexId>& targets,
-    Transitions transitions)
+    Transitions transitions,
+    Visitor& visitor)
 {
     std::vector<Weight> distances(graph.VerticesCount(), Dijkstra::INF);
     std::vector<Color> colors(graph.VerticesCount(), Color::WHITE);
     Queue queue;
-    MultilevelDijkstra(graph, distances, colors, sources, targets, std::move(transitions), queue);
+    MultilevelDijkstra(graph, distances, colors, sources,
+        ContainerCast<std::unordered_set<VertexId>>(targets), std::move(transitions), queue, visitor);
     return distances;
 }
 
@@ -95,7 +120,7 @@ auto MultilevelDijkstra(
     const std::vector<VertexId>& sources,
     const std::vector<VertexId>& targets)
 {
-    return MultilevelDijkstra<Queue>(graph, sources, targets, AllTransitions{});
+    return MultilevelDijkstra<Queue>(graph, sources, targets, AllTransitions{}, GetTrivialVisitor());
 }
 
 class MultilevelDijkstraAlgorithm : public Dijkstra {
@@ -104,7 +129,7 @@ public:
 
     Weight FindShortestPathWeight(VertexId source, VertexId target);
 
-    void Preprocess(std::filesystem::path path);
+    void Preprocess(std::filesystem::path path, LevelId levels);
 
 private:
     const Graph& GetOriginalGraph() const;

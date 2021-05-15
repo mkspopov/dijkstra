@@ -73,6 +73,8 @@ Weight BidirectionalDijkstra::GetShortestDistance(VertexId) const {
 }
 
 bool BidirectionalDijkstra::OptimizedForward(VertexId source) const {
+    // Dishonest optimization.
+    return false;
     static VertexId prevSource = UNDEFINED;
     if (prevSource == source) {
         return true;

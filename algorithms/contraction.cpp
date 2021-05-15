@@ -87,7 +87,10 @@ CellInnerTransitionsS::CellInnerTransitionsS(VertexId cell, LevelId level)
 IntermediateGraph SimpleContraction(const Graph& originalGraph, const CompactTopology& topology) {
     IntermediateGraph graph(originalGraph, topology);
 
-    for (LevelId level = 1; level + 1 < topology.LevelsCount(); ++level) {
+    ASSERT(topology.LevelsCount() > 1);
+    const auto lastLevel = topology.LevelsCount() - 1;
+
+    for (LevelId level = 1; level <= lastLevel; ++level) {
         Log() << "Contracting level" << static_cast<int>(level) << "...";
         Timer timer;
         std::unordered_map<VertexId, std::unordered_set<VertexId>> borders;
@@ -106,7 +109,8 @@ IntermediateGraph SimpleContraction(const Graph& originalGraph, const CompactTop
                     graph,
                     {from},
                     {from},
-                    CellInnerTransitionsS(topology.GetCellId(from, level), level));
+                    CellInnerTransitionsS(topology.GetCellId(from, level), level),
+                    GetTrivialVisitor());
                 for (auto to : border) {
                     if (from != to && distances.at(to) < Dijkstra::INF) {
                         graph.AddEdge(from, to, level, {distances.at(to)});
@@ -117,6 +121,19 @@ IntermediateGraph SimpleContraction(const Graph& originalGraph, const CompactTop
         Log() << "level" << static_cast<int>(level) << "contracted in"
               << timer.Elapsed() / 1'000'000 << "ms";
         Log() << "vertices:" << graph.vertices_.at(level).size();
+    }
+
+    auto& parents = graph.topology_.parents_;
+    const VertexId topVertexId = parents.size();
+    const VertexId prevSize = parents.size();
+    for (VertexId index = 0; index < prevSize; ++index) {
+        VertexId vertex = parents[index];
+        if (vertex >= prevSize) {
+            while (vertex >= static_cast<VertexId>(parents.size())) {
+                parents.emplace_back();
+            }
+            parents[vertex] = topVertexId;
+        }
     }
     return graph;
 }

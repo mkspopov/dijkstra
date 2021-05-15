@@ -59,22 +59,15 @@ public:
 
     void InitSearch(VertexId source);
 
-protected:
-    void NotRelaxed(EdgeId);
-
-    void RelaxEdge(EdgeId);
-
-    void ExamineEdge(EdgeId);
-
-    void ExamineVertex(VertexId vertex);
-
-//    bool IsVisited(VertexId vertex) const {
-////        return distances_[vertex] != INF;
-//        return colors_[vertex] != Color::WHITE;
-//    }
-
+    // Visitor api
     void DiscoverVertex(VertexId vertex);
+    void ExamineEdge(EdgeId);
+    void ExamineVertex(VertexId vertex);
+    void EdgeNotRelaxed(EdgeId);
+    void EdgeRelaxed(EdgeId);
+    void FinishVertex(VertexId vertex);
 
+protected:
     void Clear();
 
     void ClearHeap();
