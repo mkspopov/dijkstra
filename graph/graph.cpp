@@ -1,12 +1,9 @@
-//
-// Created by mkspopov on 11.11.2020.
-//
-
 #include "graph.h"
-//#include "graph.pb.h"
-
 
 #include <cassert>
+
+Edge::Edge(EdgeId id, VertexId from, VertexId to) : id(id), from(from), to(to) {
+}
 
 std::ostream& operator<<(std::ostream& os, const Edge& edge) {
     os << '(' << edge.id << ' ' << edge.from << ' ' << edge.to << ')';
@@ -17,45 +14,16 @@ std::ostream& operator<<(std::ostream& os, const EdgeProperty& edgeProperty) {
     os << edgeProperty.weight;
     return os;
 }
-
 void Graph::Dump(std::ostream& os) const {
     ::Dump(os, edges_);
     ::Dump(os, edgeProperties_);
     ::Dump(os, adjacencyList_);
-//    ToPb().SerializeToOstream(&os);
 }
-//
-//void Graph::ToPb() const {
-//    graph::Graph graph;
-//    for (const auto& edge : edges_) {
-//        auto pbEdge = graph.add_edges();
-//        pbEdge->set_id(edge.id);
-//        pbEdge->set_from(edge.from);
-//        pbEdge->set_to(edge.to);
-//    }
-//    for (const auto& [weight] : edgeProperties_) {
-//        graph.add_edge_properties()->set_weight(weight);
-//    }
-//    for (const auto& adj : adjacencyList_) {
-//        *graph.add_adj_list()->mutable_out_edge_ids() = {adj.begin(), adj.end()};
-//    }
-//    return graph;
-//}
 
 void Graph::Load(std::istream& is) {
     ::Load(is, edges_);
     ::Load(is, edgeProperties_);
     ::Load(is, adjacencyList_);
-//    graph::Graph graph;
-//    graph.ParseFromIstream(&is);
-//    GraphBuilder builder(graph.adj_list_size());
-//    for (const auto& edge : graph.edges()) {
-//        builder.AddEdge(
-//            edge.from(),
-//            edge.to(),
-//            EdgeProperty{graph.edge_properties(edge.id()).weight()});
-//    }
-//    *this = builder.Build();
 }
 
 EdgeProperty Graph::GetEdgeProperties(EdgeId edgeId) const {

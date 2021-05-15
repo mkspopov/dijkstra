@@ -1,7 +1,3 @@
-//
-// Created by mkspopov on 11.11.2020.
-//
-
 #pragma once
 
 #include "types.h"
@@ -13,8 +9,7 @@
 struct Edge {
     Edge() = default;
 
-    Edge(EdgeId id, VertexId from, VertexId to) : id(id), from(from), to(to) {
-    }
+    Edge(EdgeId id, VertexId from, VertexId to);
 
     EdgeId id;
     VertexId from;

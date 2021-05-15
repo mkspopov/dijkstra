@@ -157,12 +157,9 @@ Logger::LineLogger Log();
 
 class Timer {
 public:
-    Timer() : start_(std::chrono::high_resolution_clock::now()) {
-    }
+    Timer();
 
-    uint64_t Elapsed() const {
-        return (std::chrono::high_resolution_clock::now() - start_).count();
-    }
+    uint64_t Elapsed() const;
 
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start_;

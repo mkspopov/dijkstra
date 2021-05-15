@@ -32,9 +32,7 @@ void TestDumpAndLoad() {
     Graph loaded;
     {
         std::ifstream in("/tmp/TestDumpAndLoad.graph");
-        Log() << in.tellg();
         loaded.Load(in);
-        Log() << in.tellg();
         loaded.Load(in);
     }
     ASSERT_EQUAL(loaded.EdgesCount(), graph.EdgesCount());

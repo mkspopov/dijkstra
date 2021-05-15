@@ -21,6 +21,13 @@ Logger::LineLogger::~LineLogger() {
     os_ << lineEnd_;
 }
 
+Timer::Timer() : start_(std::chrono::high_resolution_clock::now()) {
+}
+
+uint64_t Timer::Elapsed() const {
+    return (std::chrono::high_resolution_clock::now() - start_).count();
+}
+
 std::mt19937& GetRng() {
     static std::mt19937 gen;
     return gen;
