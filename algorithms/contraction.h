@@ -9,7 +9,7 @@
 struct IntermediateGraph {
     IntermediateGraph() = default;
 
-    IntermediateGraph(Graph graph, CompactTopology topology);
+    IntermediateGraph(WeightGraph<EdgeProperty> graph, CompactTopology topology);
 
     void Dump(std::ostream& out) const;
 
@@ -41,7 +41,7 @@ struct IntermediateGraph {
 
 private:
     friend IntermediateGraph SimpleContraction(
-        const Graph& originalGraph,
+        const WeightGraph<EdgeProperty>& originalGraph,
         const CompactTopology& topology);
     friend void TestDumpAndLoad();
 
@@ -49,7 +49,7 @@ private:
 
     void AddVertex(VertexId vertex, LevelId level);
 
-    GraphBuilder builder_;
+    GraphBuilder<WeightGraph<EdgeProperty>, EdgeProperty> builder_;
     CompactTopology topology_;
     std::vector<std::unordered_map<VertexId, VertexId>> vertices_;
 };
@@ -77,7 +77,7 @@ struct CellInnerTransitionsS {
 };
 
 IntermediateGraph SimpleContraction(
-    const Graph& originalGraph,
+    const WeightGraph<EdgeProperty>& originalGraph,
     const CompactTopology& topology);
 
 //template <>

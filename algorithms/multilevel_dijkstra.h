@@ -125,14 +125,14 @@ auto MultilevelDijkstra(
 
 class MultilevelDijkstraAlgorithm : public Dijkstra {
 public:
-    explicit MultilevelDijkstraAlgorithm(const Graph& graph);
+    explicit MultilevelDijkstraAlgorithm(const WeightGraph<EdgeProperty>& graph);
 
     Weight FindShortestPathWeight(VertexId source, VertexId target);
 
-    void Preprocess(std::filesystem::path path, LevelId levels);
+    void Preprocess(const std::filesystem::path& path, LevelId levels);
 
 private:
-    const Graph& GetOriginalGraph() const;
+    const WeightGraph<EdgeProperty>& GetOriginalGraph() const;
 
     IntermediateGraph graph_;
 };

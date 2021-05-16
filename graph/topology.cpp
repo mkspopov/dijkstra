@@ -73,11 +73,6 @@ VertexId CompactTopology::GetCellId(VertexId vertexId) const {
 }
 
 VertexId CompactTopology::GetCellId(VertexId vertexId, LevelId level) const {
-    if (level == 0) {
-        ASSERT(vertexId < sizes_.at(1));
-        return vertexId;
-        // Do we really need it? May be ASSERT(level > 0)?
-    }
     ASSERT(vertexId < sizes_.at(1));
     for (LevelId cur = 0; cur < level; ++cur) {
         vertexId = parents_.at(vertexId);

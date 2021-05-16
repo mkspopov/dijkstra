@@ -12,4 +12,4 @@ using LevelId = uint8_t;
 using VertexId = uint32_t;
 using Weight = float;
 
-static constexpr int UNDEFINED = std::numeric_limits<int>::max();
+static constexpr uint32_t UNDEFINED = std::numeric_limits<uint32_t>::max();

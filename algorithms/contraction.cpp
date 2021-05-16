@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-IntermediateGraph::IntermediateGraph(Graph graph, CompactTopology topology)
+IntermediateGraph::IntermediateGraph(WeightGraph<EdgeProperty> graph, CompactTopology topology)
     : builder_(std::move(graph))
     , topology_(std::move(topology))
     , vertices_(topology_.LevelsCount())
@@ -49,7 +49,7 @@ VertexId IntermediateGraph::GetTarget(EdgeId edgeId) const {
 }
 
 LevelId IntermediateGraph::LevelsCount() const {
-    return topology_.LevelsCount();
+    return topology_.LevelsCount() - 1;
 }
 
 void IntermediateGraph::Load(std::istream& is) {
@@ -84,11 +84,30 @@ CellInnerTransitionsS::CellInnerTransitionsS(VertexId cell, LevelId level)
     , level_(level)
 {}
 
-IntermediateGraph SimpleContraction(const Graph& originalGraph, const CompactTopology& topology) {
+template <class Function>
+void TraverseChildren(
+    VertexId vertex,
+    const std::unordered_map<VertexId, std::vector<VertexId>>& children,
+    const Function& function)
+{
+    if (!children.contains(vertex)) {
+        function(vertex);
+        return;
+    }
+    for (auto child : children.at(vertex)) {
+        TraverseChildren(child, children, function);
+    }
+}
+
+IntermediateGraph SimpleContraction(const WeightGraph<EdgeProperty>& originalGraph, const CompactTopology& topology) {
     IntermediateGraph graph(originalGraph, topology);
 
     ASSERT(topology.LevelsCount() > 1);
     const auto lastLevel = topology.LevelsCount() - 1;
+//    std::unordered_map<VertexId, std::vector<VertexId>> children;
+//    for (const auto [child, parent] : Enumerate(topology.parents_)) {
+//        children[parent].push_back(child);
+//    }
 
     for (LevelId level = 1; level <= lastLevel; ++level) {
         Log() << "Contracting level" << static_cast<int>(level) << "...";
@@ -123,17 +142,5 @@ IntermediateGraph SimpleContraction(const Graph& originalGraph, const CompactTop
         Log() << "vertices:" << graph.vertices_.at(level).size();
     }
 
-    auto& parents = graph.topology_.parents_;
-    const VertexId topVertexId = parents.size();
-    const VertexId prevSize = parents.size();
-    for (VertexId index = 0; index < prevSize; ++index) {
-        VertexId vertex = parents[index];
-        if (vertex >= prevSize) {
-            while (vertex >= static_cast<VertexId>(parents.size())) {
-                parents.emplace_back();
-            }
-            parents[vertex] = topVertexId;
-        }
-    }
     return graph;
 }

@@ -9,6 +9,10 @@ project(dijkstra)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -pthread -std=c++20")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -Wall -Werror -Wextra -pthread")
 
+add_custom_target(make_directory ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory /tmp/tests/
+)
+
 add_executable(
     dijkstra
     main.cpp
@@ -46,10 +50,6 @@ add_test(stress_test algorithms/tests/stress_tests)
 set_tests_properties(
     stress_test
     PROPERTIES TIMEOUT 300
-)
-
-add_custom_target(build-time-make-directory ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory /tmp/tests/
 )
 
 # Build Types

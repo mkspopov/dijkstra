@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-Graph BuildTestGraph() {
+WeightGraph<EdgeProperty> BuildTestGraph() {
     const std::vector<std::tuple<VertexId, VertexId, Weight>> edges{
         {0, 5, 0b1},
         {1, 2, 0b10},
@@ -14,7 +14,7 @@ Graph BuildTestGraph() {
         {5, 1, 0b1000000},
     };
 
-    GraphBuilder builder(6);
+    GraphBuilder<WeightGraph<EdgeProperty>, EdgeProperty> builder(6);
     for (auto[from, to, weight] : edges) {
         builder.AddEdge(from, to, {weight});
     }
@@ -27,12 +27,14 @@ void TestDumpAndLoad() {
     const auto path = "/tmp/tests/TestDumpAndLoad.graph";
     {
         std::ofstream out(path, std::ios::binary);
+        ASSERT(out.is_open());
         graph.Dump(out);
         graph.Dump(out);
     }
-    Graph loaded;
+    WeightGraph<EdgeProperty> loaded;
     {
         std::ifstream in(path, std::ios::binary);
+        ASSERT(in.is_open());
         loaded.Load(in);
         loaded.Load(in);
     }

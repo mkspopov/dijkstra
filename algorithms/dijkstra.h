@@ -21,7 +21,7 @@ public:
     static inline constexpr Weight START_WEIGHT = 0;
     static inline constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
 
-    explicit Dijkstra(const Graph& graph);
+    explicit Dijkstra(const WeightGraph<EdgeProperty>& graph);
 
     auto AffectedVertices() {
         return IteratorRange(affectedVertices_.begin(), affectedVertices_.end());
@@ -72,7 +72,7 @@ protected:
 
     void ClearHeap();
 
-    const Graph& graph_;
+    const WeightGraph<EdgeProperty>& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
     StdHeap heap_;
@@ -81,9 +81,9 @@ protected:
     std::unordered_set<VertexId> targets_;
 };
 
-template <class Queue, class Visitor>
+template <class Queue, class G, class Visitor>
 void BoostDijkstra(
-    const Graph& graph,
+    const G& graph,
     std::vector<Weight>& distances,
     std::vector<Color>& colors,
     const std::vector<VertexId>& sources,
@@ -128,9 +128,9 @@ void BoostDijkstra(
     }
 }
 
-template <class Queue, class Visitor>
+template <class Queue, class G, class Visitor>
 auto BoostDijkstra(
-    const Graph& graph,
+    const G& graph,
     const std::vector<VertexId>& sources,
     Visitor& visitor)
 {

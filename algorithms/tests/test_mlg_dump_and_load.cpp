@@ -1,14 +1,16 @@
 #include "contraction.h"
 #include "multilevel_graphs.h"
+#include "topology_builders.h"
 #include "utils.h"
 
 #include <fstream>
 
 void TestDumpAndLoad() {
-    const auto mlg = BuildTestMlg();
     const auto path = "/tmp/tests/TestMlgDumpAndLoad.graph";
-
-    auto contracted = SimpleContraction(mlg.GetOriginalGraph(), mlg.GetTopology());
+    auto graph = BuildTestGraph();
+    const LevelId levels = 4;
+    auto topology = BuildSimplyTopology(graph, levels);
+    auto contracted = SimpleContraction(graph, topology);
     {
         std::ofstream out(path, std::ios::binary);
         contracted.Dump(out);

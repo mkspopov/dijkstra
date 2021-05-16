@@ -14,6 +14,7 @@ add_executable(
     multilevel_graphs.cpp
     test_multilevel_dijkstra.cpp
 )
+add_dependencies(test_multilevel_dijkstra make_directory)
 
 add_executable(
     test_topology_builders
@@ -26,6 +27,7 @@ add_executable(
     multilevel_graphs.cpp
     test_mlg_dump_and_load.cpp
 )
+add_dependencies(test_mlg_dump_and_load make_directory)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
@@ -40,3 +42,4 @@ add_executable(
 )
 
 target_link_libraries(stress_tests ${Boost_LIBRARIES})
+add_dependencies(stress_tests make_directory)

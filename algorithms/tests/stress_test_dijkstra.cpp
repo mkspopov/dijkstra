@@ -1,6 +1,6 @@
 #include "contraction.h"
 #include "dijkstra.h"
-#include "dijkstra_prevrun.h"
+//#include "dijkstra_prevrun.h"
 #include "bidirectional_dijkstra.h"
 #include "multilevel_dijkstra.h"
 #include "serializer.h"
@@ -107,27 +107,27 @@ void TestDijkstraHonest() {
     Log() << "Paths were found in" << timer.ElapsedMs() << "ms";
 }
 
-void TestDijkstraPrevRun() {
-    const auto& d = CalcDistancesBoost();
-
-    ShortestPathAlgorithm<PrevRunDijkstra> dijkstra(TestGraph());
-    dijkstra.Preprocess();
-    dijkstra.FindShortestPathsWeights(0);
-
-    VertexId target = TestGraph().VerticesCount() / 2;
-    while (d[target] == Dijkstra::INF) {
-        --target;
-    }
-
-    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(TestGraph());
-    bidijkstra.Preprocess();
-
-    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
-        auto my = dijkstra.FindShortestPathWeight(vertex, target);
-        auto rightAnswer = bidijkstra.FindShortestPathWeight(vertex, target);
-        ASSERT(my == rightAnswer);
-    }
-}
+//void TestDijkstraPrevRun() {
+//    const auto& d = CalcDistancesBoost();
+//
+//    ShortestPathAlgorithm<PrevRunDijkstra> dijkstra(TestGraph());
+//    dijkstra.Preprocess();
+//    dijkstra.FindShortestPathsWeights(0);
+//
+//    VertexId target = TestGraph().VerticesCount() / 2;
+//    while (d[target] == Dijkstra::INF) {
+//        --target;
+//    }
+//
+//    ShortestPathAlgorithm<BidirectionalDijkstra> bidijkstra(TestGraph());
+//    bidijkstra.Preprocess();
+//
+//    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
+//        auto my = dijkstra.FindShortestPathWeight(vertex, target);
+//        auto rightAnswer = bidijkstra.FindShortestPathWeight(vertex, target);
+//        ASSERT(my == rightAnswer);
+//    }
+//}
 
 void TestBidirectionalDijkstra() {
     const auto& d = CalcDistancesBoost();

@@ -11,7 +11,7 @@
 
 class BidirectionalDijkstra {
 public:
-    explicit BidirectionalDijkstra(const Graph& graph);
+    explicit BidirectionalDijkstra(const WeightGraph<EdgeProperty>& graph);
 
     Weight FindShortestPathWeight(VertexId source, VertexId target);
 
@@ -24,8 +24,8 @@ public:
     void Preprocess();
 
 private:
-    const Graph& graph_;
-    const Graph reversedGraph_;
+    const WeightGraph<EdgeProperty>& graph_;
+    const WeightGraph<EdgeProperty> reversedGraph_;
 
     Dijkstra forward_;
     Dijkstra backward_;

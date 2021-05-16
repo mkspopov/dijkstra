@@ -11,7 +11,7 @@ GraphDeserializer::GraphDeserializer(const std::string& filename)
     : ifStream_(std::ifstream(filename)) {
 }
 
-Graph GraphDeserializer::DimacsDeserialize() {
+WeightGraph<EdgeProperty> GraphDeserializer::DimacsDeserialize() {
     /*
      * Skips the first seven lines. Reads strings `a {from} {to} {distance}`.
      */
@@ -19,7 +19,7 @@ Graph GraphDeserializer::DimacsDeserialize() {
         ifStream_.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     char aChar = 'a';
-    GraphBuilder builder;
+    GraphBuilder<WeightGraph<EdgeProperty>, EdgeProperty> builder;
     VertexId verticesCount = 0;
 
     while (ifStream_ >> aChar) {

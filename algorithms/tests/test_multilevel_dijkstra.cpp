@@ -34,8 +34,7 @@ static inline constexpr auto I = Dijkstra::INF;
 void TestMultilevelDijkstra() {
     auto graph = BuildTestGraph();
     const LevelId levels = 4;
-    auto [topGraph, topology] = BuildSimplyTopology(graph, levels);
-    CompactMultilevelGraph mlg(graph, topGraph, topology);
+    auto topology = BuildSimplyTopology(graph, levels);
     auto contracted = SimpleContraction(graph, topology);
 
     std::vector<std::vector<Weight>> answer{

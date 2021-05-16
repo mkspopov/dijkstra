@@ -2,7 +2,7 @@
 #include "multilevel_dijkstra.h"
 #include "topology_builders.h"
 
-MultilevelDijkstraAlgorithm::MultilevelDijkstraAlgorithm(const Graph& graph)
+MultilevelDijkstraAlgorithm::MultilevelDijkstraAlgorithm(const WeightGraph<EdgeProperty>& graph)
     : Dijkstra(graph)
 {}
 
@@ -13,11 +13,11 @@ Weight MultilevelDijkstraAlgorithm::FindShortestPathWeight(VertexId source, Vert
     return distances_[target];
 }
 
-const Graph& MultilevelDijkstraAlgorithm::GetOriginalGraph() const {
+const WeightGraph<EdgeProperty>& MultilevelDijkstraAlgorithm::GetOriginalGraph() const {
     return Dijkstra::graph_;
 }
 
-void MultilevelDijkstraAlgorithm::Preprocess(std::filesystem::path path, LevelId levels) {
+void MultilevelDijkstraAlgorithm::Preprocess(const std::filesystem::path& path, LevelId levels) {
     Dijkstra::Preprocess();
 
     if (!path.empty()) {
@@ -30,7 +30,7 @@ void MultilevelDijkstraAlgorithm::Preprocess(std::filesystem::path path, LevelId
     }
     graph_ = SimpleContraction(
         GetOriginalGraph(),
-        BuildSimplyTopology(GetOriginalGraph(), levels).second);
+        BuildSimplyTopology(GetOriginalGraph(), levels));
     std::ofstream out(path, std::ios::binary);
     if (out.is_open()) {
         Log() << "Dumping to" << path;

@@ -2,6 +2,6 @@
 
 #include "multilevel_graph.h"
 
-Graph BuildTestGraph();
+WeightGraph<EdgeProperty> BuildTestGraph();
 
-MultilevelGraph BuildTestMlg();
+//MultilevelGraph BuildTestMlg();

@@ -9,7 +9,8 @@
 template <class Algorithm>
 class ShortestPathAlgorithm {
 public:
-    explicit ShortestPathAlgorithm(const Graph& graph)
+    template <class G>
+    explicit ShortestPathAlgorithm(const G& graph)
         : algorithm_(graph) {
     }
 
