@@ -57,11 +57,17 @@ void TestMultilevelDijkstra() {
 
 void TestMultiLevelDijkstraAlgorithm() {
     std::filesystem::path path = "/tmp/tests/TestMultiLevelDijkstraAlgorithm.graph";
-    const auto graph = BuildTestGraph();
+    auto originalGraph = BuildTestGraph();
     const LevelId levels = 4;
-    ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(graph);
+    ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(originalGraph);
     Log() << "Preprocessing...";
-    algorithm.Preprocess(path, levels);
+    algorithm.Preprocess([&]() {
+        return PreprocessGraph(originalGraph, path, levels);
+    });
+
+    // Who is responsible for grpah preprocessing?
+    // MultilevelDijkstra -> ShortestPathAlgorithm
+    //
 
     std::vector<std::vector<Weight>> answer{
         {0, 65, 48, 52, 32, 1},
@@ -73,7 +79,7 @@ void TestMultiLevelDijkstraAlgorithm() {
     };
 
     Log() << "Searching paths...";
-    auto numVertices = graph.VerticesCount();
+    auto numVertices = originalGraph.VerticesCount();
     for (VertexId from = 0; from < numVertices; ++from) {
         for (VertexId to = 0; to < numVertices; ++to) {
             ASSERT_EQUAL(algorithm.FindShortestPathWeight(from, to), answer[from][to]);

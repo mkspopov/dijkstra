@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "types.h"
+#include "color.h"
 
 #include <queue>
 #include <type_traits>

@@ -1,18 +1,35 @@
+#include "color.h"
 #include "graph.h"
 #include "utils.h"
+
+#include <queue>
 
 template <class G, class Predicate>
 class FilteredGraph {
 public:
-    FilteredGraph(const G& graph, Predicate predicate);
+    FilteredGraph(const G& graph, Predicate predicate)
+        : graph_(graph)
+        , predicate_(std::move(predicate))
+    {}
 
-    auto GetOutEdgeIds(VertexId vertex) const;
+    auto GetOutEdgeIds(VertexId vertex) const {
+        auto edgesRange = graph_.GetOutgoingEdges(vertex);
+        return IteratorRange(
+            FilterIterator(edgesRange.begin(), edgesRange.end(), predicate_),
+            FilterIterator(edgesRange.end(), edgesRange.end(), predicate_));
+    }
 
-    VertexId Source(EdgeId edge_id) const;
+    VertexId GetSource(EdgeId edgeId) const {
+        return graph_.GetSource(edgeId);
+    }
 
-    VertexId Target(EdgeId edge_id) const;
+    VertexId GetTarget(EdgeId edgeId) const {
+        return graph_.GetTarget(edgeId);
+    }
 
-    VertexId VerticesNumber() const;
+    VertexId VerticesCount() const {
+        return graph_.VerticesCount();
+    }
 
 private:
     const G& graph_;
@@ -26,11 +43,28 @@ public:
         const GraphType& graph,
         VertexId source,
         VertexId target,
-        std::vector<EdgeId>* path);
+        std::vector<EdgeId>* path)
+            : graph_(graph)
+            , source_(source)
+            , target_(target)
+            , parent_(graph_.VerticesCount())
+            , path_(path)
+    {}
 
-    void DiscoverVertex(VertexId vertex);
+    void DiscoverVertex(VertexId vertex) {
+        if (vertex == target_) {
+            while (vertex != source_) {
+                auto parentEdgeId = parent_[vertex];
+                path_->push_back(parentEdgeId);
+                vertex = graph_.GetSource(parentEdgeId);
+            }
+            std::reverse(path_->begin(), path_->end());
+        }
+    }
 
-    void TreeEdge(EdgeId edge_id);
+    void TreeEdge(EdgeId edgeId) {
+        parent_[graph_.GetTarget(edgeId)] = edgeId;
+    }
 
 private:
     const GraphType& graph_;
@@ -40,42 +74,43 @@ private:
     std::vector<EdgeId>* path_ = nullptr;
 };
 
-class FlowNetwork {
+struct FlowProperties {
+    EdgeId id;
+    int capacity = 0;
+    int flow = 0;
+
+    bool operator==(const FlowProperties& rhs) const = default;
+};
+
+class FlowNetwork : public WeightGraph<FlowProperties> {
 public:
-    void AddFlow(EdgeId edge_id, int flow);
+    void AddFlow(EdgeId edgeId, int flow);
 
     int GetFlow() const;
 
     int GetMaxPossibleFlow() const;
 
-    VertexId GetSource() const;
+    VertexId GetFlowSource() const;
 
     VertexId GetSink() const;
 
-    int ResidualCapacity(EdgeId edge_id) const;
+    int ResidualCapacity(EdgeId edgeId) const;
 
     auto ResidualNetworkView() const;
 
 private:
     friend class FlowNetworkBuilder;
 
-    EdgeId BackwardEdgeId(EdgeId edge_id) const;
+    EdgeId BackwardEdgeId(EdgeId edgeId) const;
 
-    struct EdgeProperties : public ::EdgeProperty {
-        explicit EdgeProperties(int capacity);
-
-        int capacity = 0;
-        int flow = 0;
-    };
-
-    std::vector<EdgeProperties> edge_properties_;
-    Graph graph_;
     VertexId source_ = 0;
     VertexId sink_ = 0;
 };
 
 class FlowNetworkBuilder {
 public:
+    FlowNetworkBuilder() = default;
+
     void AddEdgeWithCapacity(const Edge& edge, int capacity);
 
     FlowNetwork&& Build();
@@ -84,10 +119,10 @@ public:
 
     void SetSource(VertexId source);
 
-    void SetVerticesNumber(VertexId vertices_number);
+    void SetVerticesCount(VertexId verticesCount);
 
 private:
-    FlowNetwork network_;
+    GraphBuilder<FlowNetwork, FlowProperties> builder_;
 };
 
 class EdmondsKarp {
@@ -123,7 +158,7 @@ void TraverseGraphInBfsOrder(
     const GraphType& graph,
     VertexId source,
     Visitor visitor) {
-    std::vector<Color> colors(graph.VerticesNumber(), Color::WHITE);
+    std::vector<Color> colors(graph.VerticesCount(), Color::WHITE);
     std::queue<VertexId> queue;
 
     queue.push(source);
@@ -132,10 +167,10 @@ void TraverseGraphInBfsOrder(
     while (!queue.empty()) {
         auto vertex = queue.front();
         queue.pop();
-        for (auto edge_id : graph.GetOutEdgeIds(vertex)) {
-            auto target = graph.Target(edge_id);
+        for (auto edgeId : graph.GetOutEdgeIds(vertex)) {
+            auto target = graph.GetTarget(edgeId);
             if (colors[target] == Color::WHITE) {
-                visitor.TreeEdge(edge_id);
+                visitor.TreeEdge(edgeId);
                 colors[target] = Color::BLACK;
                 visitor.DiscoverVertex(target);
                 queue.push(target);

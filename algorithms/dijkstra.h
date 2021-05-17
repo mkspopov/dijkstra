@@ -1,7 +1,8 @@
 #pragma once
 
-#include "heap.h"
+#include "color.h"
 #include "graph.h"
+#include "heap.h"
 #include "visitor.h"
 
 #include <algorithm>
@@ -9,19 +10,13 @@
 #include <unordered_set>
 #include <vector>
 
-enum class Color {
-    WHITE,
-    GRAY,
-    BLACK,
-};
-
 class Dijkstra {
 public:
     static inline constexpr Weight INF = std::numeric_limits<Weight>::infinity();
     static inline constexpr Weight START_WEIGHT = 0;
     static inline constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
 
-    explicit Dijkstra(const WeightGraph<EdgeProperty>& graph);
+    explicit Dijkstra(const WGraph& graph);
 
     auto AffectedVertices() {
         return IteratorRange(affectedVertices_.begin(), affectedVertices_.end());
@@ -72,7 +67,7 @@ protected:
 
     void ClearHeap();
 
-    const WeightGraph<EdgeProperty>& graph_;
+    const WGraph& graph_;
     std::vector<Weight> distances_;
     std::vector<VertexId> affectedVertices_;
     StdHeap heap_;

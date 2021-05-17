@@ -139,7 +139,10 @@ void TestCompactCliqueContraction() {
         ASSERT_EQUAL(contracted.GetCellId(0, 2), 9u);
 
         ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(0, 1)), std::vector<EdgeId>({}));
-        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(1, 1)), std::vector<EdgeId>({11}));
+        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(1, 1)), std::vector<EdgeId>({9}));
+        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(2, 1)), std::vector<EdgeId>({7, 8}));
+        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(4, 1)), std::vector<EdgeId>({10}));
+        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(5, 1)), std::vector<EdgeId>({11}));
 //        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(2)), std::vector<EdgeId>({2, 3}));
 //        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(3)), std::vector<EdgeId>({}));
 //        ASSERT_EQUAL(ToVector(contracted.GetOutgoingEdges(4)), std::vector<EdgeId>({4}));

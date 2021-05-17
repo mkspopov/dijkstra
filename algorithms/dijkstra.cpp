@@ -4,7 +4,7 @@
 
 #include "dijkstra.h"
 
-Dijkstra::Dijkstra(const WeightGraph<EdgeProperty>& graph)
+Dijkstra::Dijkstra(const WGraph& graph)
     : graph_(graph)
 {
 }

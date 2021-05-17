@@ -2,38 +2,44 @@
 #include "multilevel_dijkstra.h"
 #include "topology_builders.h"
 
-MultilevelDijkstraAlgorithm::MultilevelDijkstraAlgorithm(const WeightGraph<EdgeProperty>& graph)
+MultilevelDijkstraAlgorithm::MultilevelDijkstraAlgorithm(const WGraph& graph)
     : Dijkstra(graph)
 {}
 
-Weight MultilevelDijkstraAlgorithm::FindShortestPathWeight(VertexId source, VertexId target) {
-    InitSearch(source);
-    auto& dijkstraVisitor = *this;
-    MultilevelDijkstra<Finish::FIRST_TARGET>(graph_, distances_, colors_, {source}, {target}, AllTransitions{}, heap_, dijkstraVisitor);
-    return distances_[target];
-}
-
-const WeightGraph<EdgeProperty>& MultilevelDijkstraAlgorithm::GetOriginalGraph() const {
+const WGraph& MultilevelDijkstraAlgorithm::GetOriginalGraph() const {
     return Dijkstra::graph_;
 }
 
-void MultilevelDijkstraAlgorithm::Preprocess(const std::filesystem::path& path, LevelId levels) {
-    Dijkstra::Preprocess();
+LevelId MultilevelDijkstraAlgorithm::LevelsCount() const {
+    return graph_.LevelsCount();
+}
 
+void MultilevelDijkstraAlgorithm::Preprocess(const std::function<IntermediateGraph()>& preprocessor) {
+    Dijkstra::Preprocess();
+    graph_ = preprocessor();
+}
+
+IntermediateGraph PreprocessGraph(
+    const WGraph& originalGraph,
+    const std::filesystem::path& path,
+    LevelId levels)
+{
+    IntermediateGraph graph;
     if (!path.empty()) {
         std::ifstream in(path, std::ios::binary);
         if (in.is_open()) {
             Log() << "Loading from" << path;
-            graph_.Load(in);
-            return;
+            graph.Load(in);
+            return graph;
         }
     }
-    graph_ = SimpleContraction(
-        GetOriginalGraph(),
-        BuildSimplyTopology(GetOriginalGraph(), levels));
+    graph = SimpleContraction(
+        originalGraph,
+        BuildSimplyTopology(originalGraph, levels));
     std::ofstream out(path, std::ios::binary);
     if (out.is_open()) {
         Log() << "Dumping to" << path;
-        graph_.Dump(out);
+        graph.Dump(out);
     }
+    return graph;
 }

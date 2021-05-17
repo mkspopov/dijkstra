@@ -4,7 +4,7 @@
 
 #include "bidirectional_dijkstra.h"
 
-BidirectionalDijkstra::BidirectionalDijkstra(const WeightGraph<EdgeProperty>& graph)
+BidirectionalDijkstra::BidirectionalDijkstra(const WGraph& graph)
     : graph_(graph)
     , reversedGraph_(graph_.Reversed())
     , forward_(graph_)

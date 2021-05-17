@@ -6,7 +6,7 @@
 #include <vector>
 
 struct TopGraph {
-    TopGraph(WeightGraph<EdgeProperty> graph, LevelId levels)
+    TopGraph(WGraph graph, LevelId levels)
         : builder_(std::move(graph))
         , parents_(levels + 1)
     {
@@ -55,7 +55,7 @@ struct TopGraph {
     }
 
 private:
-    friend CompactTopology BuildSimplyTopology(const WeightGraph<EdgeProperty>& graph, LevelId levels);
+    friend CompactTopology BuildSimplyTopology(const WGraph& graph, LevelId levels);
 
     VertexId AddVertex(LevelId level) {
         auto id = builder_.AddVertex();
@@ -75,12 +75,12 @@ private:
         ASSERT(emplaced);
     }
 
-    GraphBuilder<WeightGraph<EdgeProperty>, EdgeProperty> builder_;
+    GraphBuilder<WGraph, EdgeProperty> builder_;
     std::vector<std::vector<VertexId>> layers_;
     std::unordered_map<VertexId, VertexId> parents_;
 };
 
-CompactTopology BuildSimplyTopology(const WeightGraph<EdgeProperty>& graph, LevelId levels) {
+CompactTopology BuildSimplyTopology(const WGraph& graph, LevelId levels) {
     TopGraph topGraph(graph, levels);
     for (LevelId level = 1; level < levels; ++level) {
         std::unordered_set<VertexId> contracted;
@@ -128,7 +128,7 @@ struct Partitioning {
 //
 //}
 
-//CompactTopology BuildTopologyInertialFlow(WeightGraph<EdgeProperty> graph, LevelId levels, int depth) {
+//CompactTopology BuildTopologyInertialFlow(WGraph graph, LevelId levels, int depth) {
 //
 //    if (depth == levels) {
 //        return {};
@@ -139,7 +139,7 @@ struct Partitioning {
 //    }
 //}
 //
-//std::pair<Graph, CompactTopology> BuildTopologyInertialFlow(const WeightGraph<EdgeProperty>& graph, LevelId levels) {
+//std::pair<Graph, CompactTopology> BuildTopologyInertialFlow(const WGraph& graph, LevelId levels) {
 //
 //    return std::make_pair(graph, BuildTopologyInertialFlow(graph, levels, 0));
 //}

@@ -148,8 +148,10 @@ void TestMultiLevelDijkstra() {
     std::filesystem::path path = "/tmp/tests/multilevel_test_graph.graph";
     ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(TestGraph());
     Log() << "Preprocessing...";
-    const LevelId levels = 10;
-    algorithm.Preprocess(path, levels);
+    const LevelId levels = 7;
+    algorithm.Preprocess([&]() {
+        return PreprocessGraph(TestGraph(), path, levels);
+    });
 
     Log() << "Searching paths...";
     Timer timer;

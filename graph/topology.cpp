@@ -81,7 +81,7 @@ VertexId CompactTopology::GetCellId(VertexId vertexId, LevelId level) const {
 }
 
 LevelId CompactTopology::Level(VertexId from) const {
-    return std::distance(sizes_.begin(), std::upper_bound(sizes_.begin(), sizes_.end(), from));
+    return std::distance(sizes_.begin(), std::upper_bound(sizes_.begin(), sizes_.end(), from)) - 1;
 }
 
 LevelId CompactTopology::LevelsCount() const {

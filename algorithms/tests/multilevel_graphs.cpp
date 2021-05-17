@@ -3,7 +3,7 @@
 
 #include <vector>
 
-WeightGraph<EdgeProperty> BuildTestGraph() {
+WGraph BuildTestGraph() {
     const std::vector<std::tuple<VertexId, VertexId, Weight>> edges{
         {0, 5, 0b1},
         {1, 2, 0b10},
@@ -14,7 +14,7 @@ WeightGraph<EdgeProperty> BuildTestGraph() {
         {5, 1, 0b1000000},
     };
 
-    GraphBuilder<WeightGraph<EdgeProperty>, EdgeProperty> builder(6);
+    GraphBuilder<WGraph, EdgeProperty> builder(6);
     for (auto[from, to, weight] : edges) {
         builder.AddEdge(from, to, {weight});
     }

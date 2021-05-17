@@ -13,7 +13,7 @@ class GraphDeserializer {
 public:
     explicit GraphDeserializer(const std::string& filename);
 
-    WeightGraph<EdgeProperty> DimacsDeserialize();
+    WGraph DimacsDeserialize();
 
 private:
     std::ifstream ifStream_;

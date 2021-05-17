@@ -49,14 +49,6 @@ void MultilevelDijkstra(
 
     while (!queue.Empty()) {
         auto [from, dist] = queue.Extract();
-        visitor.ExamineVertex(from);
-        if constexpr (FinishStrategy == Finish::FIRST_TARGET) {
-            if (targets.contains(from)) {
-                return;
-            }
-        } else if constexpr (FinishStrategy == Finish::ALL_TARGETS) {
-            // TODO:
-        }
         // TODO: Optional check to easily deal with
         // std::priority_queue. This may slow down
         // code because of memory load of a random vertex
@@ -65,8 +57,17 @@ void MultilevelDijkstra(
             continue;
         }
 
+        visitor.ExamineVertex(from);
+
+        if constexpr (FinishStrategy == Finish::FIRST_TARGET) {
+            if (targets.contains(from)) {
+                return;
+            }
+        } else if constexpr (FinishStrategy == Finish::ALL_TARGETS) {
+            // TODO:
+        }
+
         auto level = Level(graph, sources.at(0), *targets.begin(), from);  // deal with many targets?
-//        auto cell = graph.GetCellId(from, level);
 
         for (auto edgeId : transitions(graph, from, level)) {
             visitor.ExamineEdge(edgeId);
@@ -125,14 +126,28 @@ auto MultilevelDijkstra(
 
 class MultilevelDijkstraAlgorithm : public Dijkstra {
 public:
-    explicit MultilevelDijkstraAlgorithm(const WeightGraph<EdgeProperty>& graph);
+    explicit MultilevelDijkstraAlgorithm(const WGraph& graph);
 
-    Weight FindShortestPathWeight(VertexId source, VertexId target);
+    template <Finish FINISH_CRITERION = Finish::FIRST_TARGET, class Transitions = AllTransitions>
+    Weight FindShortestPathWeight(VertexId source, VertexId target, Transitions transitions = {}) {
+        InitSearch(source);
+        auto& dijkstraVisitor = *this;
+        MultilevelDijkstra<FINISH_CRITERION>(
+            graph_, distances_, colors_, {source}, {target}, transitions, heap_, dijkstraVisitor);
+        return distances_[target];
+    }
 
-    void Preprocess(const std::filesystem::path& path, LevelId levels);
+    LevelId LevelsCount() const;
+
+    void Preprocess(const std::function<IntermediateGraph()>& preprocessor);
 
 private:
-    const WeightGraph<EdgeProperty>& GetOriginalGraph() const;
+    const WGraph& GetOriginalGraph() const;
 
     IntermediateGraph graph_;
 };
+
+IntermediateGraph PreprocessGraph(
+    const WGraph& originalGraph,
+    const std::filesystem::path& path,
+    LevelId levels);

@@ -190,28 +190,35 @@ std::mt19937& GetRng();
 template <class ClassRef>
 class Enumerate {
 public:
-    explicit Enumerate(ClassRef& c, size_t index = 0) : c_(c), index_(index) {
+    using Iterator = decltype(std::declval<ClassRef>().begin());
+
+    explicit Enumerate(ClassRef& c) : c_(c) {
+    }
+
+    Enumerate(ClassRef& c, Iterator cur) : c_(c), cur_(std::move(cur)) {
     }
 
     Enumerate& operator++() {
+        ++cur_;
         ++index_;
         return *this;
     }
 
     auto operator*() {
-        return std::tie(index_, c_[index_]);
+        return std::tie(index_, *cur_);
     }
 
     bool operator!=(const Enumerate& rhs) const {
-        return index_ != rhs.index_;
+        return cur_ != rhs.cur_;
     }
 
-    auto begin() { return Enumerate(c_, 0); }
+    auto begin() { return Enumerate(c_, c_.begin()); }
 
-    auto end() { return Enumerate(c_, c_.size()); }
+    auto end() { return Enumerate(c_, c_.end()); }
 
 private:
     ClassRef& c_;
+    Iterator cur_;
     size_t index_ = 0;
 };
 
@@ -334,3 +341,7 @@ void Load(std::istream& is, Map<K, V>& map) {
         map.emplace(std::move(key), std::move(value));
     }
 }
+
+/*
+ * snake_case regex: [a-zA-Z]+_[a-z][A-Z]+
+ */

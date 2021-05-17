@@ -34,6 +34,10 @@ const std::vector<Edge>& Graph::GetEdges() const {
     return edges_;
 }
 
+VertexId Graph::GetSource(EdgeId edgeId) const {
+    return edges_[edgeId].from;
+}
+
 VertexId Graph::GetTarget(EdgeId edgeId) const {
     return edges_[edgeId].to;
 }

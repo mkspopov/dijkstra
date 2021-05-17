@@ -6,7 +6,7 @@ add_library(
     dijkstra.h dijkstra.cpp
 #    dijkstra_prevrun.h
     heap.h
-#    min_cut.h min_cut.cpp
+    min_cut.h min_cut.cpp
     multilevel_dijkstra.h multilevel_dijkstra.cpp
     shortest_path_algorithm.h shortest_path_algorithm.cpp
     topology_builders.h topology_builders.cpp

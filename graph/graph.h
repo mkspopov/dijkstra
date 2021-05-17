@@ -41,6 +41,8 @@ public:
     const std::vector<Edge>&
     GetEdges() const;
 
+    VertexId GetSource(EdgeId edgeId) const;
+
     VertexId GetTarget(EdgeId edgeId) const;
 
     VertexId VerticesCount() const;
@@ -68,7 +70,7 @@ public:
     void Load(std::istream& is);
 
     EdgeProperties GetEdgeProperties(EdgeId edgeId) const {
-        return edgeProperties_[edgeId];
+        return edgeProperties_.at(edgeId);
     }
 
     WeightGraph Reversed() const;
@@ -148,3 +150,5 @@ WeightGraph<EdgeProperties> WeightGraph<EdgeProperties>::Reversed() const {
     }
     return builder.Build();
 }
+
+using WGraph = WeightGraph<EdgeProperty>;
