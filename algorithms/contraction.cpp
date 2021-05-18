@@ -112,6 +112,10 @@ class ThreadLocalDijkstra {
 public:
     void Init(const WGraph& originalGraph, const IntermediateGraph& graph, LevelId level) {
         if (!dijkstra_ || level > currentLevel_) {
+            if (count_) {
+                Log() << "Stats, RunsCount:" << count_ << '\n' << dijkstra_->GetStats() / count_;
+                count_ = 0;
+            }
             currentLevel_ = level;
             const auto vs = graph.builder_.graph_.VerticesCount();
             (void) vs;
@@ -128,6 +132,7 @@ public:
             source,
             source,  // TODO: remove it, use Finish::ALL in MLD.
             transitions);
+        ++count_;
     }
 
     auto GetDistance(VertexId target) const {
@@ -137,6 +142,7 @@ public:
 private:
     LevelId currentLevel_ = 0;
     std::unique_ptr<MultilevelDijkstraAlgorithm> dijkstra_;
+    int count_ = 0;
 };
 
 thread_local ThreadLocalDijkstra threadLocalDijkstra;
@@ -174,27 +180,31 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
                     cut.push_back({child, to, graph.GetEdgeProperties(edgeId).weight});
                 }
             }
-            for (auto edgeId : reversedOriginalGraph.GetOutgoingEdges(child)) {
-                auto to = reversedOriginalGraph.GetTarget(edgeId);
-                if (cellId != topology.GetCellId(to, level)) {
-                    border.insert(child);
-                    // This edge will be added in the other component.
-                    // TODO: Remove this for loop for potential speed up.
-                }
-            }
-
-            for (auto from : border) {
-                threadLocalDijkstra.Init(originalGraph, graph, level);
-                threadLocalDijkstra.Run(
-                    from,
-                    CellInnerTransitionsS(topology.GetCellId(from, level), level));
-                for (auto to : border) {
-                    if (from != to && threadLocalDijkstra.GetDistance(to) < Dijkstra::INF) {
-                        inner.push_back({from, to, threadLocalDijkstra.GetDistance(to)});
+            if (!border.contains(child)) {
+                for (auto edgeId : reversedOriginalGraph.GetOutgoingEdges(child)) {
+                    auto to = reversedOriginalGraph.GetTarget(edgeId);
+                    if (cellId != topology.GetCellId(to, level)) {
+                        border.insert(child);
+                        break;
+                        // This edge will be added in the other component.
+                        // TODO: Remove this for loop for potential speed up.
                     }
                 }
             }
         });
+
+
+        for (auto from : border) {
+            threadLocalDijkstra.Init(originalGraph, graph, level);
+            threadLocalDijkstra.Run(
+                from,
+                CellInnerTransitionsS(topology.GetCellId(from, level), level));
+            for (auto to : border) {
+                if (from != to && threadLocalDijkstra.GetDistance(to) < Dijkstra::INF) {
+                    inner.push_back({from, to, threadLocalDijkstra.GetDistance(to)});
+                }
+            }
+        }
     };
 
     LevelId singleThreadLevel = 0;

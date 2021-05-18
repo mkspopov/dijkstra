@@ -6,9 +6,9 @@ set(CMAKE_CXX_COMPILER "g++-10")
 
 project(dijkstra)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -pthread -std=c++20 -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wextra -pthread -std=c++20 -O0")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -Wall -Werror -Wextra -pthread")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread -Wall -Werror -Wextra -pthread")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread -Wall -Werror -Wextra -pthread")
 
 add_custom_target(make_directory ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory /tmp/tests/

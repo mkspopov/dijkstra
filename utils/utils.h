@@ -156,12 +156,13 @@ public:
 
         template <class T>
         LineLogger&& operator<<(const T& something) {
-            os_ << something << separator_;
+            ss_ << something << separator_;
             return std::move(*this);
         }
 
     private:
         std::ostream& os_;
+        std::stringstream ss_;
         const char separator_ = ' ';
         const char lineEnd_ = '\n';
     };

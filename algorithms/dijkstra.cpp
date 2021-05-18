@@ -110,18 +110,23 @@ void Dijkstra::InitSearch(VertexId source) {
 
 void Dijkstra::DiscoverVertex(VertexId vertex) {
     affectedVertices_.push_back(vertex);
+    ++stats_.verticesDiscovered;
 }
 
 void Dijkstra::ExamineEdge(EdgeId) {
+    ++stats_.edgesExamined;
 }
 
 void Dijkstra::ExamineVertex(VertexId) {
+    ++stats_.verticesExamined;
 }
 
 void Dijkstra::EdgeNotRelaxed(EdgeId) {
+    ++stats_.edgesNotRelaxed;
 }
 
 void Dijkstra::EdgeRelaxed(EdgeId) {
+    ++stats_.edgesRelaxed;
 }
 
 void Dijkstra::FinishVertex(VertexId) {
@@ -140,4 +145,31 @@ void Dijkstra::ClearHeap() {
     while (!heap_.Empty()) {
         heap_.Extract();
     }
+}
+
+std::ostream& operator<<(std::ostream& os, const Dijkstra::Stats& s) {
+    os << "verticesDiscovered " << s.verticesDiscovered << '\n';
+    os << "verticesExamined " << s.verticesExamined << '\n';
+    os << "edgesExamined " << s.edgesExamined << '\n';
+    os << "edgesRelaxed " << s.edgesRelaxed << '\n';
+    os << "edgesNotRelaxed " << s.edgesNotRelaxed << '\n';
+    return os;
+}
+
+Dijkstra::Stats& operator+=(Dijkstra::Stats& lhs, const Dijkstra::Stats& rhs) {
+    lhs.verticesDiscovered += rhs.verticesDiscovered;
+    lhs.verticesExamined += rhs.verticesExamined;
+    lhs.edgesExamined += rhs.edgesExamined;
+    lhs.edgesRelaxed += rhs.edgesRelaxed;
+    lhs.edgesNotRelaxed += rhs.edgesNotRelaxed;
+    return lhs;
+}
+
+Dijkstra::Stats operator/(Dijkstra::Stats lhs, int rhs) {
+    lhs.verticesDiscovered /= rhs;
+    lhs.verticesExamined /= rhs;
+    lhs.edgesExamined /= rhs;
+    lhs.edgesRelaxed /= rhs;
+    lhs.edgesNotRelaxed /= rhs;
+    return lhs;
 }

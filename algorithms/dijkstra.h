@@ -12,6 +12,14 @@
 
 class Dijkstra {
 public:
+    struct Stats {
+        VertexId verticesDiscovered = 0;
+        VertexId verticesExamined = 0;
+        EdgeId edgesExamined = 0;
+        EdgeId edgesRelaxed = 0;
+        EdgeId edgesNotRelaxed = 0;
+    };
+
     static inline constexpr Weight INF = std::numeric_limits<Weight>::infinity();
     static inline constexpr Weight START_WEIGHT = 0;
     static inline constexpr VertexId UNDEFINED_VERTEX = std::numeric_limits<VertexId>::max();
@@ -62,6 +70,10 @@ public:
     void EdgeRelaxed(EdgeId);
     void FinishVertex(VertexId vertex);
 
+    Stats GetStats() const {
+        return stats_;
+    }
+
 protected:
     void Clear();
 
@@ -74,7 +86,14 @@ protected:
     std::vector<Color> colors_;
 
     std::unordered_set<VertexId> targets_;
+
+    Stats stats_;
 };
+
+std::ostream& operator<<(std::ostream& os, const Dijkstra::Stats& s);
+
+Dijkstra::Stats& operator+=(Dijkstra::Stats& lhs, const Dijkstra::Stats& rhs);
+Dijkstra::Stats operator/(Dijkstra::Stats lhs, int rhs);
 
 template <class Queue, class G, class Visitor>
 void BoostDijkstra(

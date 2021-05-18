@@ -18,7 +18,8 @@ Logger::LineLogger::LineLogger(const Logger& logger)
 }
 
 Logger::LineLogger::~LineLogger() {
-    os_ << lineEnd_;
+    ss_ << lineEnd_;
+    os_ << ss_.str();
 }
 
 Timer::Timer() : start_(std::chrono::high_resolution_clock::now()) {
