@@ -6,7 +6,7 @@
 
 int main() {
     const std::string path = "../graphs/USA-road-d.NY.gr";
-    auto graph = GraphDeserializer(path).DimacsDeserialize();
+    auto graph = GraphDeserializer(path).ReadDistances();
     Log() << graph.VerticesCount() << graph.EdgesCount();
 
     ShortestPathAlgorithm<Dijkstra> dijkstra(graph);

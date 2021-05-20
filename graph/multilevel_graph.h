@@ -4,7 +4,6 @@
 #include "topology.h"
 
 #include <algorithm>
-#include <cassert>
 #include <iterator>
 #include <ranges>
 #include <unordered_set>
@@ -16,8 +15,8 @@
 //        : graph_(std::forward<G>(graph))
 //        , topology_(std::move(topology))
 //    {
-//        assert(topology_.sizes_.front() == 0);
-//        assert(topology_.sizes_.size() == topology_.cells_.size() + 1);
+//        ASSERT(topology_.sizes_.front() == 0);
+//        ASSERT(topology_.sizes_.size() == topology_.cells_.size() + 1);
 //
 //        VertexId zeroLevelVerticesCount = topology_.cells_.front().size();
 //        topology_.cellIds_.push_back(topology_.cells_.front());
@@ -139,7 +138,7 @@ public:
         , multilevelGraph_(std::forward<TG>(topGraph))
         , topology_(std::forward<T>(topology))
     {
-        assert(topology_.sizes_.front() == 0);
+        ASSERT(topology_.sizes_.front() == 0);
     }
 
     VertexId GetCellId(VertexId vertex) const {

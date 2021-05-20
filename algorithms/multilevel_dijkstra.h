@@ -146,8 +146,3 @@ private:
 
     IntermediateGraph graph_;
 };
-
-IntermediateGraph PreprocessGraph(
-    const WGraph& originalGraph,
-    const std::filesystem::path& path,
-    LevelId levels);

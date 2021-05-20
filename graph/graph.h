@@ -1,5 +1,6 @@
 #pragma once
 
+#include "geometry.h"
 #include "types.h"
 #include "utils.h"
 
@@ -32,14 +33,13 @@ class Graph {
 public:
     Graph() = default;
 
-    void Dump(std::ostream& os) const;
-    void Load(std::istream& is);
+    virtual void Dump(std::ostream& os) const;
+    virtual void Load(std::istream& is);
 
     IteratorRange<std::vector<EdgeId>::const_iterator>
     GetOutgoingEdges(VertexId from) const;
 
-    const std::vector<Edge>&
-    GetEdges() const;
+    const std::vector<Edge>& GetEdges() const;
 
     VertexId GetSource(EdgeId edgeId) const;
 
@@ -66,8 +66,8 @@ class WeightGraph : public Graph {
 public:
     WeightGraph() = default;
 
-    void Dump(std::ostream& os) const;
-    void Load(std::istream& is);
+    void Dump(std::ostream& os) const override;
+    void Load(std::istream& is) override;
 
     EdgeProperties GetEdgeProperties(EdgeId edgeId) const {
         return edgeProperties_.at(edgeId);
@@ -75,26 +75,27 @@ public:
 
     WeightGraph Reversed() const;
 
+    EdgeId HasEdge(VertexId from, VertexId to, EdgeProperties&& properties) {
+        for (auto edgeId : GetOutgoingEdges(from)) {
+            if (GetTarget(edgeId) == to && GetEdgeProperties(edgeId) == properties) {
+                return edgeId;
+            }
+        }
+        return UNDEFINED;
+    }
+
 protected:
     template <class G, class ...Properties>
     friend class GraphBuilder;
 
-    EdgeId AddEdge(VertexId from, VertexId to, EdgeProperties&& properties);
+    EdgeId AddEdge(VertexId from, VertexId to, EdgeProperties&& properties) {
+        auto id = Graph::AddEdge(from, to);
+        edgeProperties_.emplace_back(std::forward<EdgeProperties>(properties));
+        return id;
+    }
 
     std::vector<EdgeProperties> edgeProperties_;
 };
-
-template <class EdgeProperties>
-EdgeId WeightGraph<EdgeProperties>::AddEdge(VertexId from, VertexId to, EdgeProperties&& properties) {
-    for (auto edgeId : GetOutgoingEdges(from)) {
-        if (GetTarget(edgeId) == to && GetEdgeProperties(edgeId) == properties) {
-            return UNDEFINED;
-        }
-    }
-    auto id = Graph::AddEdge(from, to);
-    edgeProperties_.emplace_back(std::forward<EdgeProperties>(properties));
-    return id;
-}
 
 template <class EdgeProperties>
 void WeightGraph<EdgeProperties>::Dump(std::ostream& os) const {
@@ -125,15 +126,34 @@ public:
         return graph_.AddVertex();
     }
 
-    EdgeId AddEdge(VertexId from, VertexId to, Properties&& ...properties) {
-        return graph_.AddEdge(from, to, std::forward<Properties>(properties)...);
-    }
-
     G&& Build() {
         return std::move(graph_);
     }
 
-//private:
+    EdgeId AddEdge(VertexId from, VertexId to, Properties&& ...properties) {
+        return graph_.AddEdge(from, to, std::forward<Properties>(properties)...);
+    }
+
+    EdgeId HasEdge(VertexId from, VertexId to) {
+        for (auto edgeId : graph_.GetOutgoingEdges(from)) {
+            if (graph_.GetTarget(edgeId) == to) {
+                return edgeId;
+            }
+        }
+        return UNDEFINED;
+    }
+
+    template <class P>
+    EdgeId HasEdge(VertexId from, VertexId to, P&& edgeProperties) {
+        for (auto edgeId : graph_.GetOutgoingEdges(from)) {
+            if (graph_.GetTarget(edgeId) == to && graph_.GetEdgeProperties(edgeId) == edgeProperties) {
+                return edgeId;
+            }
+        }
+        return UNDEFINED;
+    }
+
+    //private:
     G graph_;
 };
 
@@ -152,3 +172,45 @@ WeightGraph<EdgeProperties> WeightGraph<EdgeProperties>::Reversed() const {
 }
 
 using WGraph = WeightGraph<EdgeProperty>;
+
+template <class VertexProperties>
+class VertexWeightGraph : public Graph {
+public:
+    VertexWeightGraph() = default;
+
+    VertexId AddVertex(VertexProperties properties) {
+        auto id = Graph::AddVertex();
+        vertexProperties_.push_back(std::move(properties));
+        return id;
+    }
+
+    EdgeId AddEdge(VertexId from, VertexId to) {
+        return Graph::AddEdge(from, to);
+    }
+
+    void Dump(std::ostream& os) const override;
+    void Load(std::istream& is) override;
+
+    VertexProperties GetVertexProperties(VertexId vertexId) const {
+        return vertexProperties_.at(vertexId);
+    }
+
+    VertexWeightGraph Reversed() const;
+
+protected:
+    std::vector<VertexProperties> vertexProperties_;
+};
+
+template <class VertexProperties>
+void VertexWeightGraph<VertexProperties>::Dump(std::ostream& os) const {
+    Graph::Dump(os);
+    ::Dump(os, vertexProperties_);
+}
+
+template <class VertexProperties>
+void VertexWeightGraph<VertexProperties>::Load(std::istream& is) {
+    Graph::Load(is);
+    ::Load(is, vertexProperties_);
+}
+
+using CoordGraph = VertexWeightGraph<Point>;

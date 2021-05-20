@@ -10,7 +10,6 @@
 #include "visitor.h"
 
 #include <algorithm>
-#include <cassert>
 #include <limits>
 #include <memory>
 #include <unordered_set>

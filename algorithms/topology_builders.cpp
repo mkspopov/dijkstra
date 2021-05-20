@@ -1,4 +1,6 @@
 #include "contraction.h"
+#include "graph_traverse.h"
+#include "inertial_flow.h"
 #include "topology_builders.h"
 
 #include <execution>
@@ -119,27 +121,56 @@ CompactTopology BuildSimplyTopology(const WGraph& graph, LevelId levels) {
     return topGraph.BuildTopology();
 }
 
-struct Partitioning {
-    std::vector<VertexId> first;
-    std::vector<VertexId> second;
+struct XCoordComp {
+    XCoordComp(const CoordGraph& graph) : graph_(graph) {
+    }
+
+    bool operator()(VertexId lhs, VertexId rhs) const {
+        return graph_.GetVertexProperties(lhs).x < graph_.GetVertexProperties(rhs).x;
+    }
+
+private:
+    const CoordGraph& graph_;
 };
 
-//std::vector<EdgeId> Split() {
-//
-//}
+CompactTopology BuildTopologyInertialFlow(const CoordGraph& graph, LevelId levels, double coef, int steps) {
+    auto states = MakePartition<XCoordComp>(graph, levels, coef, steps);
 
-//CompactTopology BuildTopologyInertialFlow(WGraph graph, LevelId levels, int depth) {
-//
-//    if (depth == levels) {
-//        return {};
-//    }
-//    auto cutEdges = FindCutEdges(graph);
-//    for (auto edgeId : cutEdges) {
-//        graph.GetEdges()[edgeId]
-//    }
-//}
-//
-//std::pair<Graph, CompactTopology> BuildTopologyInertialFlow(const WGraph& graph, LevelId levels) {
-//
-//    return std::make_pair(graph, BuildTopologyInertialFlow(graph, levels, 0));
-//}
+    /*
+     * 0 0 1 1 1 0  ->  6 6 7  7  7  6
+     * 0 1 2 3 3 1  ->  8 9 10 11 11 9
+     */
+
+    CompactTopology topology;
+    topology.sizes_ = {0, graph.VerticesCount()};
+    std::vector<std::vector<VertexId>> cells(levels, std::vector<VertexId>(graph.VerticesCount()));
+    for (LevelId level : Range(0ul, states.size())) {
+        size_t index = states.size() - level - 1;
+        std::unordered_set<VertexId> newCells;
+        for (auto [vertex, cellId] : Enumerate(states.at(index).toGraphId)) {
+            auto parentId = cellId + topology.sizes_.back();
+            cells.at(level).at(vertex) = parentId;
+            newCells.insert(parentId);
+            auto child = vertex;
+            if (level > 0) {
+                child = cells.at(level - 1).at(vertex);
+            }
+            while (topology.parents_.size() <= child) {
+                topology.parents_.emplace_back();
+            }
+            topology.parents_.at(child) = parentId;
+        }
+        topology.sizes_.push_back(newCells.size() + topology.sizes_.back());
+    }
+
+    auto root = topology.sizes_.back();
+    topology.sizes_.push_back(root + 1);
+    for (auto child : cells.at(levels - 1)) {
+        while (topology.parents_.size() <= child) {
+            topology.parents_.emplace_back();
+        }
+        topology.parents_.at(child) = root;
+    }
+
+    return topology;
+}

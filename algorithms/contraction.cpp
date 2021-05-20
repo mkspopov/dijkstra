@@ -117,8 +117,6 @@ public:
                 count_ = 0;
             }
             currentLevel_ = level;
-            const auto vs = graph.builder_.graph_.VerticesCount();
-            (void) vs;
             dijkstra_ = std::make_unique<MultilevelDijkstraAlgorithm>(originalGraph);
             dijkstra_->Preprocess([&]() {
                 return graph;

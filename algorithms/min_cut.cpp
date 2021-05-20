@@ -1,150 +1,71 @@
+#include "graph_traverse.h"
+#include "flow_network.h"
 #include "min_cut.h"
 
-#include <algorithm>
 #include <iostream>
-#include <limits>
-#include <numeric>
-#include <queue>
-#include <tuple>
+#include <unordered_set>
 #include <vector>
 
-void FlowNetwork::AddFlow(EdgeId edgeId, int flow) {
-    edgeProperties_[edgeId].flow += flow;
-    edgeProperties_[BackwardEdgeId(edgeId)].flow -= flow;
-}
-
-int FlowNetwork::GetFlow() const {
-    int flow = 0;
-    for (auto edgeId : GetOutgoingEdges(source_)) {
-        flow += edgeProperties_[edgeId].flow;
+class MinCutBfsVisitor {
+public:
+    explicit MinCutBfsVisitor(MinCut& minCut) : minCut_(minCut) {
     }
-    return flow;
-}
 
-int FlowNetwork::GetMaxPossibleFlow() const {
-    int flow = 0;
-    for (auto edgeId : GetOutgoingEdges(source_)) {
-        flow += edgeProperties_[edgeId].capacity;
+    void DiscoverVertex(VertexId vertex) {
+        minCut_.first.insert(vertex);
     }
-    return flow;
-}
 
-VertexId FlowNetwork::GetFlowSource() const {
-    return source_;
-}
-
-VertexId FlowNetwork::GetSink() const {
-    return sink_;
-}
-
-int FlowNetwork::ResidualCapacity(EdgeId edgeId) const {
-    return edgeProperties_[edgeId].capacity - edgeProperties_[edgeId].flow;
-}
-
-auto FlowNetwork::ResidualNetworkView() const {
-    auto predicate = [this](EdgeId edgeId) {
-        return ResidualCapacity(edgeId) > 0;
-    };
-
-    return FilteredGraph(*this, predicate);
-}
-
-EdgeId FlowNetwork::BackwardEdgeId(EdgeId edgeId) const {
-    return edgeId ^ static_cast<EdgeId>(1);
-}
-
-//FlowNetwork::EdgeProperties::EdgeProperties(int capacity) : capacity(capacity) {
-//}
-
-void FlowNetworkBuilder::AddEdgeWithCapacity(const Edge& edge, int capacity) {
-    builder_.AddEdge(edge.from, edge.to, FlowProperties{edge.id, capacity});
-}
-
-FlowNetwork&& FlowNetworkBuilder::Build() {
-    return builder_.Build();
-}
-
-void FlowNetworkBuilder::SetSink(VertexId sink) {
-    builder_.graph_.sink_ = sink;
-}
-
-void FlowNetworkBuilder::SetSource(VertexId source) {
-    builder_.graph_.source_ = source;
-}
-
-void FlowNetworkBuilder::SetVerticesCount(VertexId verticesCount) {
-    for (VertexId vertex = 0; vertex < verticesCount; ++vertex) {
-        builder_.AddVertex();
+    void TreeEdge(EdgeId) {
     }
-}
 
-EdmondsKarp::EdmondsKarp(FlowNetwork* network) : network_(network) {
-}
+private:
+    MinCut& minCut_;
+};
 
-int EdmondsKarp::FindMaxFlow() {
-    auto source = network_->GetFlowSource();
-    auto sink = network_->GetSink();
-    std::vector<EdgeId> path;
+MinCut FindMinCut(
+    const std::vector<VertexId>& sources,
+    const std::vector<VertexId>& sinks,
+    const Graph& graph)
+{
+    FlowNetworkBuilder builder;
+    builder.SetVerticesCount(graph.VerticesCount() + 2);
+    auto sourceId = graph.VerticesCount();
+    auto sinkId = graph.VerticesCount() + 1;
+    builder.SetSource(sourceId);
+    builder.SetSink(sinkId);
 
-    const auto& residualNetwork = network_->ResidualNetworkView();
+    const int capacity = 1;
+    const int inf = std::numeric_limits<int>::max();
+
+    for (auto edge : graph.GetEdges()) {
+        builder.AddEdgeWithCapacity(edge, capacity);
+    }
+    for (auto edge : graph.GetEdges()) {
+        builder.AddEdgeWithCapacity({UNDEFINED, edge.to, edge.from}, capacity);
+    }
+    for (auto source : sources) {
+        builder.AddEdgeWithCapacity({UNDEFINED, sourceId, source}, inf);
+    }
+    for (auto sink : sinks) {
+        builder.AddEdgeWithCapacity({UNDEFINED, sink, sinkId}, inf);
+    }
+
+    auto network = builder.Build();
+
+    EdmondsKarp(&network).FindMaxFlow();
+
+    MinCut minCut;
     TraverseGraphInBfsOrder(
-        residualNetwork,
-        source,
-        ShortestPathBfsVisitor(residualNetwork, source, sink, &path));
-    while (!path.empty()) {
-        UpdateFlow(path);
-        path.clear();
-        TraverseGraphInBfsOrder(
-            residualNetwork,
-            source,
-            ShortestPathBfsVisitor(residualNetwork, source, sink, &path));
+        network.ResidualNetworkView(),
+        sourceId,
+        MinCutBfsVisitor(minCut));
+
+    for (const auto& edge : graph.GetEdges()) {
+        if ((minCut.first.contains(edge.from) && !minCut.first.contains(edge.to)) ||
+            (minCut.first.contains(edge.to) && !minCut.first.contains(edge.from))) {
+            minCut.edges.push_back(edge.id);
+        }
     }
-    return network_->GetFlow();
+
+    return minCut;
 }
-
-void EdmondsKarp::UpdateFlow(const std::vector<EdgeId>& path) {
-    auto minCapacity_edgeId = *std::min_element(
-        path.begin(),
-        path.end(),
-        [this](EdgeId lhs, EdgeId rhs) {
-            return network_->ResidualCapacity(lhs) < network_->ResidualCapacity(rhs);
-        });
-
-    auto minCapacity = network_->ResidualCapacity(minCapacity_edgeId);
-    for (auto edgeId : path) {
-        network_->AddFlow(edgeId, minCapacity);
-    }
-}
-
-//int FindMinMaxGoldBars(
-//    int people_number,
-//    int verticesCount,
-//    int source,
-//    int sink,
-//    const std::vector<int>& gold_bars,
-//    const std::vector<Edge>& trust_relations) {
-//    FlowNetworkBuilder initial_builder;
-//    initial_builder.SetVerticesNumber(verticesCount);
-//    initial_builder.SetSource(source);
-//    initial_builder.SetSink(sink);
-//    for (int human = 1; human <= people_number; ++human) {
-//        initial_builder.AddEdgeWithCapacity(Edge(source, human), gold_bars[human - 1]);
-//    }
-//    for (const auto& edge : trust_relations) {
-//        initial_builder.AddEdgeWithCapacity(edge, std::numeric_limits<int>::max());
-//    }
-//
-//    auto has_max_flow = [&initial_builder, people_number, sink](int sink_edge_capacity) {
-//        auto network_builder = initial_builder;
-//        for (int human = 1; human <= people_number; ++human) {
-//            network_builder.AddEdgeWithCapacity(Edge(human, sink), sink_edge_capacity);
-//        }
-//        auto network = network_builder.Build();
-//
-//        auto flow = EdmondsKarp(&network).FindMaxFlow();
-//
-//        return network.GetMaxPossibleFlow() == flow;
-//    };
-//
-//    return BinarySearch(kMinPossibleAnswer, kMaxPossibleAnswer, has_max_flow);
-//}

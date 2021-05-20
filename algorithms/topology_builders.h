@@ -5,4 +5,4 @@
 
 CompactTopology BuildSimplyTopology(const WGraph& graph, LevelId levels);
 
-CompactTopology BuildTopologyInertialFlow(const WGraph& graph, LevelId levels);
+CompactTopology BuildTopologyInertialFlow(const CoordGraph& graph, LevelId levels, double coef = 1.0 / 4, int steps = 0);

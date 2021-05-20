@@ -3,6 +3,7 @@
 //#include "dijkstra_prevrun.h"
 #include "bidirectional_dijkstra.h"
 #include "multilevel_dijkstra.h"
+#include "multilevel_graphs.h"
 #include "serializer.h"
 #include "shortest_path_algorithm.h"
 #include "topology_builders.h"
@@ -18,8 +19,9 @@
 using namespace boost;
 
 static VertexId NUM_VERTICES = 1000;
+static const auto NEW_YORK_GRAPH = "graphs/NY/USA-road-d.NY.gr";
 
-std::string FindFile(std::filesystem::path path) {
+std::filesystem::path FindFile(std::filesystem::path path) {
     for (auto curDir = std::filesystem::current_path();
             curDir != "/";
             curDir = curDir.parent_path()) {
@@ -27,22 +29,34 @@ std::string FindFile(std::filesystem::path path) {
             if (!std::filesystem::is_directory(p)) {
                 auto str = p.path().string();
                 if (str.ends_with(path.string())) {
-                    return str;
+                    return p.path();
                 }
             }
         }
     }
-    return "";
+    return {};
 }
 
 const auto& TestGraph() {
-    static const std::string path = FindFile("graphs/USA-road-d.NY.gr");
-    static const auto testGraph = GraphDeserializer(path).DimacsDeserialize();
+    static const auto path = FindFile(NEW_YORK_GRAPH);
+    static const auto testGraph = GraphDeserializer(path).ReadDistances();
     static bool logOnce = true;
     if (logOnce) {
         Log() << "Read testGraph from" << path
               << ", vertices:" << testGraph.VerticesCount()
               << ", edges:" << testGraph.EdgesCount();
+        logOnce = false;
+    }
+    return testGraph;
+}
+
+const auto& TestCoordGraph() {
+    static const auto path = FindFile(NEW_YORK_GRAPH);
+    static const auto testGraph = GraphDeserializer(path).ReadCoordinates();
+    static bool logOnce = true;
+    if (logOnce) {
+        Log() << "Read testGraph from" << path
+              << ", vertices:" << testGraph.VerticesCount();
         logOnce = false;
     }
     return testGraph;
@@ -150,7 +164,26 @@ void TestMultiLevelDijkstra() {
     Log() << "Preprocessing...";
     const LevelId levels = 7;
     algorithm.Preprocess([&]() {
-        return PreprocessGraph(TestGraph(), path, levels);
+        return PreprocessGraph(TestGraph(), path, BuildSimplyTopology(TestGraph(), levels));
+    });
+
+    Log() << "Searching paths...";
+    Timer timer;
+    for (VertexId vertex = 0; vertex < NUM_VERTICES; ++vertex) {
+        ASSERT_EQUAL(algorithm.FindShortestPathWeight(0, vertex), d[vertex]);
+    }
+    Log() << "Paths were found in" << timer.ElapsedMs() << "ms";
+}
+
+void TestInertialFlow() {
+    const auto& d = CalcDistancesBoost();
+
+    std::filesystem::path path = "/tmp/tests/multilevel_test_graph_inertial_flow.graph";
+    ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(TestGraph());
+    Log() << "Preprocessing...";
+    const LevelId levels = 7;
+    algorithm.Preprocess([&]() {
+        return PreprocessGraph(TestGraph(), path, BuildTopologyInertialFlow(TestCoordGraph(), levels));
     });
 
     Log() << "Searching paths...";
@@ -168,6 +201,7 @@ int main() {
 
     NUM_VERTICES = 1000;
 
+    RUN_TEST(TestInertialFlow);
     RUN_TEST(TestMultiLevelDijkstra);
     RUN_TEST(TestDijkstra);
     RUN_TEST(TestDijkstraHonest);

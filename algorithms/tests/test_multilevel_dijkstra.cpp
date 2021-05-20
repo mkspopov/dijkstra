@@ -62,7 +62,7 @@ void TestMultiLevelDijkstraAlgorithm() {
     ShortestPathAlgorithm<MultilevelDijkstraAlgorithm> algorithm(originalGraph);
     Log() << "Preprocessing...";
     algorithm.Preprocess([&]() {
-        return PreprocessGraph(originalGraph, path, levels);
+        return PreprocessGraph(originalGraph, path, BuildSimplyTopology(originalGraph, levels));
     });
 
     // Who is responsible for grpah preprocessing?

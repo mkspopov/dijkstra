@@ -4,8 +4,9 @@ add_library(
     bidirectional_dijkstra.h bidirectional_dijkstra.cpp
     contraction.h contraction.cpp
     dijkstra.h dijkstra.cpp
-#    dijkstra_prevrun.h
+    flow_network.h flow_network.cpp
     heap.h
+    inertial_flow.h inertial_flow.cpp
     min_cut.h min_cut.cpp
     multilevel_dijkstra.h multilevel_dijkstra.cpp
     shortest_path_algorithm.h shortest_path_algorithm.cpp

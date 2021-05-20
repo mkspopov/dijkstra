@@ -1,7 +1,5 @@
 #include "graph.h"
 
-#include <cassert>
-
 Edge::Edge(EdgeId id, VertexId from, VertexId to) : id(id), from(from), to(to) {
 }
 

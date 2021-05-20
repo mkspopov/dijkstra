@@ -1,20 +1,19 @@
-//
-// Created by mkspopov on 11.11.2020.
-//
-
 #pragma once
 
 #include "graph.h"
 
-#include <fstream>
-#include <string>
+#include <filesystem>
 
 class GraphDeserializer {
 public:
-    explicit GraphDeserializer(const std::string& filename);
+    explicit GraphDeserializer(std::filesystem::path path);
 
-    WGraph DimacsDeserialize();
+    CoordGraph ReadCoordinates();
+    WGraph ReadDistances();
+    WGraph ReadTravelTimes();
 
 private:
-    std::ifstream ifStream_;
+    WGraph ReadGraph();
+
+    std::filesystem::path path_;
 };
