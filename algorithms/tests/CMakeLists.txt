@@ -10,16 +10,32 @@ function(AddTest name)
         ${name}.cpp
     )
     add_dependencies(${name} make_directory)
+    add_test(${name} ${name})
 endfunction()
 
+AddTest(stress_test_dijkstra)
+AddTest(test_inertial_flow)
+AddTest(test_mlg_dump_and_load)
+AddTest(test_multilevel_graph)
 AddTest(test_multilevel_dijkstra)
 AddTest(test_topology_builders)
-AddTest(test_mlg_dump_and_load)
-AddTest(test_inertial_flow)
-AddTest(stress_test_dijkstra)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.71.0 REQUIRED COMPONENTS graph)
 target_link_libraries(stress_test_dijkstra ${Boost_LIBRARIES})
+
+set_tests_properties(
+    stress_test_dijkstra
+    PROPERTIES TIMEOUT 300
+)
+
+set_tests_properties(
+    test_inertial_flow
+    test_mlg_dump_and_load
+    test_multilevel_graph
+    test_multilevel_dijkstra
+    test_topology_builders
+    PROPERTIES TIMEOUT 1
+)
