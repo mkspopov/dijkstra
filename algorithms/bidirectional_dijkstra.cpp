@@ -1,7 +1,3 @@
-//
-// Created by mkspopov on 13.11.2020.
-//
-
 #include "bidirectional_dijkstra.h"
 
 BidirectionalDijkstra::BidirectionalDijkstra(const WGraph& graph)
@@ -62,10 +58,6 @@ Weight BidirectionalDijkstra::FindShortestPathWeight(VertexId source, VertexId t
     }
 
     return minDistance;
-}
-
-std::string BidirectionalDijkstra::GetName() const {
-    return "BidirectionalDijkstra";
 }
 
 Weight BidirectionalDijkstra::GetShortestDistance(VertexId) const {

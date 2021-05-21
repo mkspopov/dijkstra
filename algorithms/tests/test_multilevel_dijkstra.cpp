@@ -8,29 +8,6 @@
 
 static inline constexpr auto I = Dijkstra::INF;
 
-//void TestMultilevelDijkstraOld() {
-//    auto mlg = BuildTestMlg();
-//
-//    auto contracted = SimpleContraction(mlg);
-//
-//    std::vector<std::vector<Weight>> answer{
-//        {0, 65, 48, 52, 32, 1},
-//        {I, 0,  2,  6,  10, I},
-//        {I, I,  0,  4,  8,  I},
-//        {I, I,  I,  0,  I,  I},
-//        {I, I,  16, 20, 0,  I},
-//        {I, 64, 66, 70, 74, 0},
-//    };
-//
-//    auto numVertices = mlg.VerticesCount(0);
-//    for (VertexId from = 0; from < numVertices; ++from) {
-//        for (VertexId to = 0; to < numVertices; ++to) {
-//            auto distances = MultilevelDijkstra<StdHeap>(contracted, {from}, {to});
-//            ASSERT_EQUAL(distances[to], answer[from][to]);
-//        }
-//    }
-//}
-
 void TestMultilevelDijkstra() {
     auto graph = BuildTestGraph();
     const LevelId levels = 4;
@@ -88,8 +65,8 @@ void TestMultiLevelDijkstraAlgorithm() {
 }
 
 int main() {
-    std::cerr << "Running tests ...\n";
+    Log() << "Running tests ...\n";
     RUN_TEST(TestMultilevelDijkstra);
     RUN_TEST(TestMultiLevelDijkstraAlgorithm);
-    std::cerr << "Done tests.\n";
+    Log() << "Done tests.\n";
 }

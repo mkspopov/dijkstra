@@ -1,7 +1,3 @@
-//
-// Created by mkspopov on 13.11.2020.
-//
-
 #pragma once
 
 #include "graph.h"
@@ -31,7 +27,7 @@ public:
         algorithm_.Preprocess(std::forward<Args>(args)...);
     }
 
-    std::string GetName() const {
+    constexpr std::string_view GetName() const {
         return algorithm_.GetName();
     }
 

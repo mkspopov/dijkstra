@@ -30,6 +30,10 @@ public:
         return IteratorRange(affectedVertices_.begin(), affectedVertices_.end());
     }
 
+    static constexpr std::string_view GetName() {
+        return "Dijkstra";
+    }
+
     bool IsAffected(VertexId vertexId) const;
 
     bool IsProcessed(VertexId vertexId) const;

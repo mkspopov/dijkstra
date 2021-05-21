@@ -137,6 +137,10 @@ public:
         return distances_[target];
     }
 
+    static constexpr std::string_view GetName() {
+        return "MultilevelDijkstra";
+    }
+
     LevelId LevelsCount() const;
 
     void Preprocess(const std::function<IntermediateGraph()>& preprocessor);

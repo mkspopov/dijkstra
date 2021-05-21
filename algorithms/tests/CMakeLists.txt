@@ -20,11 +20,7 @@ AddTest(test_multilevel_graph)
 AddTest(test_multilevel_dijkstra)
 AddTest(test_topology_builders)
 
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.71.0 REQUIRED COMPONENTS graph)
-target_link_libraries(stress_test_dijkstra ${Boost_LIBRARIES})
+target_link_libraries(stress_test_dijkstra test_utils)
 
 set_tests_properties(
     stress_test_dijkstra

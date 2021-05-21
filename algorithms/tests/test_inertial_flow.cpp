@@ -46,8 +46,8 @@ void TestSmallInertialFlow() {
 }
 
 int main() {
-    std::cerr << "Running tests ...\n";
+    Log() << "Running tests ...\n";
     RUN_TEST(TestMinCut);
     RUN_TEST(TestSmallInertialFlow);
-    std::cerr << "Done tests.\n";
+    Log() << "Done tests.\n";
 }

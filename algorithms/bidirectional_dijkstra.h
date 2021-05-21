@@ -1,13 +1,8 @@
-//
-// Created by mkspopov on 13.11.2020.
-//
-
 #pragma once
 
 #include "dijkstra.h"
 #include "visitor.h"
 #include "graph.h"
-
 
 class BidirectionalDijkstra {
 public:
@@ -15,7 +10,9 @@ public:
 
     Weight FindShortestPathWeight(VertexId source, VertexId target);
 
-    std::string GetName() const;
+    static constexpr std::string_view GetName() {
+        return "BidirectionalDijkstra";
+    }
 
     Weight GetShortestDistance(VertexId) const;
 

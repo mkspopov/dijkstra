@@ -69,8 +69,8 @@ jobs:
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^test" --verbose
-    - name: StressTest
-      working-directory: ${{github.workspace}}/tsan_build
-      shell: bash
-      timeout-minutes: 1
-      run: ctest -C Release -R "^stress_test" --verbose
+#    - name: StressTest
+#      working-directory: ${{github.workspace}}/tsan_build
+#      shell: bash
+#      timeout-minutes: 1
+#      run: ctest -C Release -R "^stress_test" --verbose

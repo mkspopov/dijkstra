@@ -1,7 +1,3 @@
-//
-// Created by mkspopov on 11.11.2020.
-//
-
 #pragma once
 
 #include <chrono>
@@ -19,10 +15,10 @@ To ContainerCast(From&& from) {
 
 #define RUN_TEST(test_function) do { \
     {                            \
-    std::cerr << "Running " << #test_function << " ...\n"; \
-    Timer timer;                            \
+    Log() << "Running " << #test_function << " ...\n"; \
+    Timer _timer;                            \
     test_function(); \
-    std::cerr << "Done " << #test_function << " in " << timer.Elapsed() / 1'000'000 << "ms\n"; \
+    Log() << "Done " << #test_function << " in " << _timer.ElapsedMs(); \
     }                                \
     } while (false)
 
@@ -251,14 +247,14 @@ struct Mapping {
 };
 
 #define ASSERT_EQUAL(lhs, rhs) do {                                            \
-    auto left = (lhs);                                                         \
-    auto right = (rhs);                                                        \
-    if (!(left == right)) {                                                    \
-        std::stringstream ss;                                                  \
-        ss <<  __FILE__ << ':' << __LINE__ << std::endl;                       \
-        ss << "\t\tASSERT_EQUAL failed:\t" << left << "\t!=\t" << right << std::endl;\
-        ss << "\t\tArgs:\t" << #lhs << "\t!=\t" << #rhs << std::endl;                 \
-        throw std::runtime_error(ss.str());                                    \
+    auto _left = (lhs);                                                         \
+    auto _right = (rhs);                                                        \
+    if (!(_left == _right)) {                                                    \
+        std::stringstream _ss;                                                  \
+        _ss <<  __FILE__ << ':' << __LINE__ << std::endl;                       \
+        _ss << "\t\tASSERT_EQUAL failed:\t" << _left << "\t!=\t" << _right << std::endl; \
+        _ss << "\t\tArgs:\t" << #lhs << "\t!=\t" << #rhs << std::endl;                 \
+        throw std::runtime_error(_ss.str());                                    \
     }                                                                          \
 } while (false)                                                                \
 
@@ -342,7 +338,3 @@ void Load(std::istream& is, Map<K, V>& map) {
         map.emplace(std::move(key), std::move(value));
     }
 }
-
-/*
- * snake_case regex: [a-zA-Z]+_[a-z][A-Z]+
- */

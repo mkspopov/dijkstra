@@ -26,7 +26,7 @@ void TestSimpleBuilder() {
 }
 
 int main() {
-    std::cerr << "Running tests ...\n";
+    Log() << "Running tests ...\n";
     RUN_TEST(TestSimpleBuilder);
-    std::cerr << "Done tests.\n";
+    Log() << "Done tests.\n";
 }
