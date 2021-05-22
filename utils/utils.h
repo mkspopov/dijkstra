@@ -246,17 +246,25 @@ struct Mapping {
     std::unordered_map<To, From> inverse_;
 };
 
-#define ASSERT_EQUAL(lhs, rhs) do {                                            \
-    auto _left = (lhs);                                                         \
-    auto _right = (rhs);                                                        \
-    if (!(_left == _right)) {                                                    \
-        std::stringstream _ss;                                                  \
-        _ss <<  __FILE__ << ':' << __LINE__ << std::endl;                       \
-        _ss << "\t\tASSERT_EQUAL failed:\t" << _left << "\t!=\t" << _right << std::endl; \
-        _ss << "\t\tArgs:\t" << #lhs << "\t!=\t" << #rhs << std::endl;                 \
-        throw std::runtime_error(_ss.str());                                    \
-    }                                                                          \
-} while (false)                                                                \
+#ifndef NDEBUG
+    #define ASSERT_EQUAL(lhs, rhs) do {       \
+        /* throw std::runtime_error("Comment me"); */ \
+        auto _left = (lhs);                                                         \
+        auto _right = (rhs);                                                       \
+        if (!(_left == _right)) {                                                    \
+            std::stringstream _ss;                                                  \
+            _ss <<  __FILE__ << ':' << __LINE__ << std::endl;                       \
+            _ss << "\t\tASSERT_EQUAL failed:\t" << _left << "\t!=\t" << _right << std::endl; \
+            _ss << "\t\tArgs:\t" << #lhs << "\t!=\t" << #rhs << std::endl;                 \
+            throw std::runtime_error(_ss.str());                                    \
+        }                                                                          \
+    } while (false)
+#else
+    #define ASSERT_EQUAL(lhs, rhs) do { \
+        static_cast<void>(lhs);                                 \
+        static_cast<void>(rhs);                                 \
+    } while (false)
+#endif
 
 #define ASSERT(expression) ASSERT_EQUAL(expression, true)
 

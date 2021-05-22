@@ -1,8 +1,8 @@
 #pragma once
 
 #include "dijkstra.h"
-#include "visitor.h"
 #include "graph.h"
+#include "visitor.h"
 
 class BidirectionalDijkstra {
 public:
@@ -16,7 +16,7 @@ public:
 
     Weight GetShortestDistance(VertexId) const;
 
-    [[nodiscard]] bool OptimizedForward(VertexId source) const;
+    Dijkstra::Stats GetStats() const;
 
     void Preprocess();
 

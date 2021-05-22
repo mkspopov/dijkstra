@@ -1,7 +1,10 @@
-#include "multilevel_graph.h"
+#include "graph.h"
 #include "multilevel_graphs.h"
+#include "topology.h"
 
 #include <array>
+#include <iterator>
+#include <unordered_set>
 
 static constexpr std::array<std::tuple<VertexId, VertexId, Weight>, 7> EDGES{{
     {0, 5, 0b1},
@@ -45,7 +48,7 @@ CoordGraph BuildTestCoordGraph() {
 IntermediateGraph PreprocessGraph(
     const WGraph& originalGraph,
     const std::filesystem::path& path,
-    CompactTopology topology)
+    const Topology& topology)
 {
     IntermediateGraph graph;
     if (!path.empty()) {
@@ -56,7 +59,7 @@ IntermediateGraph PreprocessGraph(
             return graph;
         }
     }
-    graph = SimpleContraction(
+    graph = MultithreadContraction(
         originalGraph,
         topology);
     std::ofstream out(path, std::ios::binary);

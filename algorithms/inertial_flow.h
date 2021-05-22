@@ -29,8 +29,7 @@ auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef,
 
     ThreadPool threadPool(std::thread::hardware_concurrency());
 
-    for (LevelId level = 0; level < levels; ++level) {
-//        for (int step = 0; step < steps; ++step) {
+    for (LevelId level = 0; level < levels * steps; ++level) {
         std::vector<std::unordered_set<VertexId>> parts(graphs.size() * 2);
 
         auto split = [&](size_t index) {
@@ -48,7 +47,8 @@ auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef,
 
             auto secondVertices = ContainerCast<std::unordered_set<VertexId>>(vertices);
             for (auto v : minCut.first) {
-                ASSERT_EQUAL(secondVertices.erase(v), 1ul);
+                auto erasedCount = secondVertices.erase(v);
+                ASSERT_EQUAL(erasedCount, 1ul);
             }
 
             for (auto vertex : minCut.first) {
@@ -68,7 +68,8 @@ auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef,
 
         threadPool.WaitAll();
         for (auto& task : tasks) {
-            ASSERT(task->IsCompletedOrThrow());
+            bool completed = task->IsCompletedOrThrow();
+            ASSERT(completed);
         }
 
         auto last = std::remove_if(
@@ -91,7 +92,8 @@ auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef,
         }
         threadPool.WaitAll();
         for (auto& task : tasks) {
-            ASSERT(task->IsCompletedOrThrow());
+            bool completed = task->IsCompletedOrThrow();
+            ASSERT(completed);
         }
 
         std::vector<MappingToOriginalGraph> partedGraphs(parts.size());
@@ -115,12 +117,12 @@ auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef,
         }
         threadPool.WaitAll();
         for (auto& task : tasks) {
-            ASSERT(task->IsCompletedOrThrow());
+            bool completed = task->IsCompletedOrThrow();
+            ASSERT(completed);
         }
 
         graphs = std::move(partedGraphs);
         states.push_back(std::move(state));
-//        }
     }
     return states;
 }

@@ -1,5 +1,6 @@
 #include "utils/utils.h"
 
+#include <cassert>
 #include <iostream>
 #include <ranges>
 #include <tuple>
@@ -19,13 +20,19 @@ struct Int {
 };
 
 int main() {
-    const std::vector<Int>& a = {1, 2, 3};
-    const std::vector<Int>& b = {4, 5, 6};
-    std::cout << "First\n";
-    auto r = {std::views::all(a), std::views::all(b)};
-    std::cout << "Second\n";
-    for (const auto& i : r | std::views::join) {
-        std::cout << i.a << ' ';
+//    const std::vector<Int>& a = {1, 2, 3};
+//    const std::vector<Int>& b = {4, 5, 6};
+//    std::cout << "First\n";
+//    auto r = {std::views::all(a), std::views::all(b)};
+//    std::cout << "Second\n";
+//    for (const auto& i : r | std::views::join) {
+//        std::cout << i.a << ' ';
+//    }
+//    std::cout << std::endl;
+    int x = -1;
+    ASSERT_EQUAL(++x, -1);
+    if (x != 0) {
+        throw "";
     }
-    std::cout << std::endl;
+    assert(false);
 }

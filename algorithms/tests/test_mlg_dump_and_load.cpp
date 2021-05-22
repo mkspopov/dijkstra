@@ -10,7 +10,7 @@ void TestDumpAndLoad() {
     auto graph = BuildTestGraph();
     const LevelId levels = 4;
     auto topology = BuildSimplyTopology(graph, levels);
-    auto contracted = SimpleContraction(graph, topology);
+    auto contracted = MultithreadContraction(graph, topology);
     {
         std::ofstream out(path, std::ios::binary);
         contracted.Dump(out);

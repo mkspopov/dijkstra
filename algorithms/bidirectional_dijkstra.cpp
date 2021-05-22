@@ -14,11 +14,7 @@ Weight BidirectionalDijkstra::FindShortestPathWeight(VertexId source, VertexId t
     if (source == target) {
         return 0;
     }
-    if (!OptimizedForward(source)) {
-        forward_.InitSearch(source);
-    } else if (forward_.IsProcessed(target)) {
-        return forward_.GetShortestDistance(target);
-    }
+    forward_.InitSearch(source);
     backward_.InitSearch(target);
 
     VertexId prevProcessedForward = source;
@@ -48,8 +44,8 @@ Weight BidirectionalDijkstra::FindShortestPathWeight(VertexId source, VertexId t
             const auto to = graph_.GetTarget(edgeId);
             if (backward_.IsProcessed(to)) {
                 const auto distance = forward_.GetShortestDistance(from) +
-                                      graph_.GetEdgeProperties(edgeId).weight +
-                                      backward_.GetShortestDistance(to);
+                    graph_.GetEdgeProperties(edgeId).weight +
+                    backward_.GetShortestDistance(to);
                 if (distance < minDistance) {
                     minDistance = distance;
                 }
@@ -64,15 +60,10 @@ Weight BidirectionalDijkstra::GetShortestDistance(VertexId) const {
     return Dijkstra::INF;
 }
 
-bool BidirectionalDijkstra::OptimizedForward(VertexId source) const {
-    // Dishonest optimization.
-    return false;
-    static VertexId prevSource = UNDEFINED;
-    if (prevSource == source) {
-        return true;
-    }
-    prevSource = source;
-    return false;
+Dijkstra::Stats BidirectionalDijkstra::GetStats() const {
+    auto stats = forward_.GetStats();
+    stats += backward_.GetStats();
+    return stats;
 }
 
 void BidirectionalDijkstra::Preprocess() {

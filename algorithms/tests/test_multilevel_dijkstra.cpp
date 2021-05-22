@@ -4,15 +4,13 @@
 #include "shortest_path_algorithm.h"
 #include "topology_builders.h"
 
-#include <iostream>
-
 static inline constexpr auto I = Dijkstra::INF;
 
 void TestMultilevelDijkstra() {
     auto graph = BuildTestGraph();
     const LevelId levels = 4;
     auto topology = BuildSimplyTopology(graph, levels);
-    auto contracted = SimpleContraction(graph, topology);
+    auto contracted = MultithreadContraction(graph, topology);
 
     std::vector<std::vector<Weight>> answer{
         {0, 65, 48, 52, 32, 1},
@@ -41,10 +39,6 @@ void TestMultiLevelDijkstraAlgorithm() {
     algorithm.Preprocess([&]() {
         return PreprocessGraph(originalGraph, path, BuildSimplyTopology(originalGraph, levels));
     });
-
-    // Who is responsible for grpah preprocessing?
-    // MultilevelDijkstra -> ShortestPathAlgorithm
-    //
 
     std::vector<std::vector<Weight>> answer{
         {0, 65, 48, 52, 32, 1},

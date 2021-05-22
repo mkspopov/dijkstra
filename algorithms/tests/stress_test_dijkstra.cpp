@@ -3,20 +3,13 @@
 #include "bidirectional_dijkstra.h"
 #include "multilevel_dijkstra.h"
 #include "multilevel_graphs.h"
-#include "serializer.h"
 #include "shortest_path_algorithm.h"
-#include "../from_boost/test_utils.h"
 #include "topology_builders.h"
 #include "utils.h"
 
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include "../from_boost/utils_for_tests.h"
 
 #include <filesystem>
-#include <iostream>
-
-using namespace boost;
 
 static VertexId NUM_VERTICES = 1000;
 
@@ -86,7 +79,7 @@ void TestInertialFlow() {
     Log() << "Preprocessing...";
     const LevelId levels = 7;
     algorithm.Preprocess([&]() {
-        return PreprocessGraph(TestGraph(), path, BuildTopologyInertialFlow(TestCoordGraph(), levels));
+        return PreprocessGraph(TestGraph(), path, BuildInertialFlow(TestCoordGraph(), levels));
     });
 
     Log() << "Searching paths...";

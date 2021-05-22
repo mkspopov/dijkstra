@@ -4,7 +4,6 @@
 #include "topology_builders.h"
 
 #include <execution>
-#include <iostream>
 #include <vector>
 
 struct TopGraph {
@@ -36,8 +35,8 @@ struct TopGraph {
         return builder_.graph_.GetEdgeProperties(edgeId);
     }
 
-    CompactTopology BuildTopology() {
-        CompactTopology topology;
+    Topology BuildTopology() {
+        Topology topology;
         topology.parents_.resize(parents_.size());
         for (auto [child, parent] : parents_) {
             topology.parents_.at(child) = parent;
@@ -57,7 +56,7 @@ struct TopGraph {
     }
 
 private:
-    friend CompactTopology BuildSimplyTopology(const WGraph& graph, LevelId levels);
+    friend Topology BuildSimplyTopology(const WGraph& graph, LevelId levels);
 
     VertexId AddVertex(LevelId level) {
         auto id = builder_.AddVertex();
@@ -82,7 +81,7 @@ private:
     std::unordered_map<VertexId, VertexId> parents_;
 };
 
-CompactTopology BuildSimplyTopology(const WGraph& graph, LevelId levels) {
+Topology BuildSimplyTopology(const WGraph& graph, LevelId levels) {
     TopGraph topGraph(graph, levels);
     for (LevelId level = 1; level < levels; ++level) {
         std::unordered_set<VertexId> contracted;
@@ -133,17 +132,12 @@ private:
     const CoordGraph& graph_;
 };
 
-CompactTopology BuildTopologyInertialFlow(const CoordGraph& graph, LevelId levels, double coef, int steps) {
+Topology BuildInertialFlow(const CoordGraph& graph, LevelId levels, double coef, int steps) {
     auto states = MakePartition<XCoordComp>(graph, levels, coef, steps);
 
-    /*
-     * 0 0 1 1 1 0  ->  6 6 7  7  7  6
-     * 0 1 2 3 3 1  ->  8 9 10 11 11 9
-     */
-
-    CompactTopology topology;
+    Topology topology;
     topology.sizes_ = {0, graph.VerticesCount()};
-    std::vector<std::vector<VertexId>> cells(levels, std::vector<VertexId>(graph.VerticesCount()));
+    std::vector<std::vector<VertexId>> cells(levels * steps, std::vector<VertexId>(graph.VerticesCount()));
     for (LevelId level : Range(0ul, states.size())) {
         size_t index = states.size() - level - 1;
         std::unordered_set<VertexId> newCells;
@@ -165,11 +159,20 @@ CompactTopology BuildTopologyInertialFlow(const CoordGraph& graph, LevelId level
 
     auto root = topology.sizes_.back();
     topology.sizes_.push_back(root + 1);
-    for (auto child : cells.at(levels - 1)) {
+    for (auto child : cells.at(levels * steps - 1)) {
         while (topology.parents_.size() <= child) {
             topology.parents_.emplace_back();
         }
         topology.parents_.at(child) = root;
+    }
+
+    for (auto [child, parent] : Enumerate(topology.parents_)) {
+        for (int step = 0; step < steps - 1; ++step) {
+            if (parent >= topology.parents_.size()) {
+                break;
+            }
+            parent = topology.parents_[parent];
+        }
     }
 
     return topology;

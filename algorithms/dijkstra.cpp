@@ -165,7 +165,7 @@ Dijkstra::Stats& operator+=(Dijkstra::Stats& lhs, const Dijkstra::Stats& rhs) {
     return lhs;
 }
 
-Dijkstra::Stats operator/(Dijkstra::Stats lhs, int rhs) {
+Dijkstra::Stats operator/(Dijkstra::Stats lhs, uint64_t rhs) {
     lhs.verticesDiscovered /= rhs;
     lhs.verticesExamined /= rhs;
     lhs.edgesExamined /= rhs;

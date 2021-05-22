@@ -1,7 +1,7 @@
 #pragma once
 
 #include "contraction.h"
-#include "multilevel_graph.h"
+#include "topology.h"
 
 WGraph BuildTestGraph();
 
@@ -10,4 +10,4 @@ CoordGraph BuildTestCoordGraph();
 IntermediateGraph PreprocessGraph(
     const WGraph& originalGraph,
     const std::filesystem::path& path,
-    CompactTopology topology);
+    const Topology& topology);

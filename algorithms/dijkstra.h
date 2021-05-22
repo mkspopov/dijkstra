@@ -13,11 +13,11 @@
 class Dijkstra {
 public:
     struct Stats {
-        VertexId verticesDiscovered = 0;
-        VertexId verticesExamined = 0;
-        EdgeId edgesExamined = 0;
-        EdgeId edgesRelaxed = 0;
-        EdgeId edgesNotRelaxed = 0;
+        uint64_t verticesDiscovered = 0;
+        uint64_t verticesExamined = 0;
+        uint64_t edgesExamined = 0;
+        uint64_t edgesRelaxed = 0;
+        uint64_t edgesNotRelaxed = 0;
     };
 
     static inline constexpr Weight INF = std::numeric_limits<Weight>::infinity();
@@ -38,7 +38,7 @@ public:
 
     bool IsProcessed(VertexId vertexId) const;
 
-    void Preprocess();
+    virtual void Preprocess();
 
     Weight FindShortestPathWeight(VertexId source, VertexId target);
 
@@ -97,7 +97,7 @@ protected:
 std::ostream& operator<<(std::ostream& os, const Dijkstra::Stats& s);
 
 Dijkstra::Stats& operator+=(Dijkstra::Stats& lhs, const Dijkstra::Stats& rhs);
-Dijkstra::Stats operator/(Dijkstra::Stats lhs, int rhs);
+Dijkstra::Stats operator/(Dijkstra::Stats lhs, uint64_t rhs);
 
 template <class Queue, class G, class Visitor>
 void BoostDijkstra(

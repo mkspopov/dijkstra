@@ -16,6 +16,7 @@ CoordGraph GraphDeserializer::ReadCoordinates() {
     filename[9] = 'd';
     path_.replace_filename(filename);
     path_.replace_extension("co");
+    Log() << "Reading graph from" << path_ << "...";
     std::ifstream file(path_);
     ASSERT(file.is_open());
 
@@ -66,6 +67,7 @@ WGraph GraphDeserializer::ReadTravelTimes() {
 }
 
 WGraph GraphDeserializer::ReadGraph() {
+    Log() << "Reading graph from" << path_ << "...";
     path_.replace_extension("gr");
     std::ifstream file(path_);
     ASSERT(file.is_open());

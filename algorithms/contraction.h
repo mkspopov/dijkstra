@@ -6,10 +6,52 @@
 #include <fstream>
 #include <unordered_map>
 
+namespace C {
+struct Edge {
+    VertexId from;
+    VertexId to;
+    Weight weight;
+};
+
+struct LevelStats {
+    struct CellStats {
+        VertexId count = 0;
+        VertexId minSize = std::numeric_limits<VertexId>::max();
+        VertexId maxSize = std::numeric_limits<VertexId>::min();
+
+        CellStats& operator+=(const CellStats& rhs) {
+            count += rhs.count;
+            minSize = std::min(minSize, rhs.minSize);
+            maxSize = std::max(maxSize, rhs.maxSize);
+            return *this;
+        }
+
+        double CalcAverageSize(VertexId verticesCount) const {
+            return static_cast<double>(verticesCount) / count;
+        }
+    };
+
+    LevelStats& operator+=(const LevelStats& rhs) {
+        cellStats += rhs.cellStats;
+        cutEdges += rhs.cutEdges;
+        innerEdges += rhs.innerEdges;
+        return *this;
+    }
+
+    CellStats cellStats;
+    EdgeId cutEdges = 0;
+    EdgeId innerEdges = 0;
+};
+}
+
+std::ostream& operator<<(std::ostream& os, const C::LevelStats::CellStats& stats);
+
+std::ostream& operator<<(std::ostream& os, const C::LevelStats& stats);
+
 struct IntermediateGraph {
     IntermediateGraph() = default;
 
-    IntermediateGraph(WGraph graph, CompactTopology topology);
+    IntermediateGraph(WGraph graph, Topology topology);
 
     void Dump(std::ostream& out) const;
 
@@ -28,7 +70,6 @@ struct IntermediateGraph {
         return EMPTY;
     }
 
-
     VertexId GetTarget(EdgeId edgeId) const;
 
     LevelId LevelsCount() const;
@@ -39,10 +80,12 @@ struct IntermediateGraph {
 
     VertexId VerticesCount() const;
 
-//private:
-    friend IntermediateGraph SimpleContraction(
+    std::vector<C::LevelStats> stats_;
+
+private:
+    friend IntermediateGraph MultithreadContraction(
         const WGraph& originalGraph,
-        const CompactTopology& topology);
+        const Topology& topology);
     friend void TestDumpAndLoad();
 
     void AddEdge(VertexId from, VertexId to, LevelId level, EdgeProperty edgeProperty);
@@ -50,7 +93,7 @@ struct IntermediateGraph {
     void AddVertex(VertexId vertex, LevelId level);
 
     GraphBuilder<WGraph, EdgeProperty> builder_;
-    CompactTopology topology_;
+    Topology topology_;
     std::vector<std::unordered_map<VertexId, VertexId>> vertices_;
 };
 
@@ -77,71 +120,6 @@ struct CellInnerTransitionsS {
     LevelId level_;
 };
 
-IntermediateGraph SimpleContraction(
+IntermediateGraph MultithreadContraction(
     const WGraph& originalGraph,
-    const CompactTopology& topology);
-
-//template <>
-//IntermediateGraph CliqueContraction(const MultilevelGraph& mlg) {
-//    auto zeroLevelGraph = mlg.GetOriginalGraph();
-//    IntermediateGraph graph(std::move(zeroLevelGraph), mlg.GetTopology());
-//
-//    for (LevelId level = 1; level + 1 < mlg.LevelsCount(); ++level) {
-//        std::unordered_map<VertexId, std::vector<Edge>> levelCutEdges;
-//        std::unordered_map<VertexId, std::vector<VertexId>> borderVertices;
-//        for (auto cellId : mlg.GetCells(level)) {
-//            auto& border = borderVertices[cellId];
-//            auto& cutEdges = levelCutEdges[cellId];
-//            // async
-//            for (auto u : mlg.GetVertices(cellId)) {
-//                for (auto edgeId : mlg.GetOutgoingEdges(u)) {
-//                    auto v = mlg.GetTarget(edgeId);
-//                    if (cellId != mlg.GetCellId(v, level)) {
-//                        cutEdges.emplace_back(edgeId, u, v);
-//                        border.push_back(mlg.GetCellId(u, 0));
-//                    }
-//                }
-//            }
-//        }
-//        // async:WaitAll
-//        for (auto&& [cellId, cutEdges] : levelCutEdges) {
-//            for (auto [id, u, v] : cutEdges) {
-////                graph.AddVertex(u, level);
-////                graph.AddVertex(v, level);
-//                graph.AddEdge(mlg.GetCellId(u, 0), mlg.GetCellId(v, 0), level, mlg.GetEdgeProperties(id));
-////                graph.AddVertex(cellId, level);
-////                auto toCell = graph.GetCellId(v, level);
-////                graph.AddVertex(toCell);
-////                graph.AddEdge(cellId, toCell, mlg.GetEdgeProperties(id));
-//            }
-//        }
-//
-//        std::unordered_map<VertexId, std::vector<std::tuple<VertexId, VertexId, Weight>>> levelCellEdges;
-//        for (auto cellId : mlg.GetCells(level)) {
-//            const auto& border = borderVertices[cellId];
-//            auto& cellEdges = levelCellEdges[cellId];
-//            // async
-//            for (auto u : border) {
-//                auto distances = MultilevelDijkstra<StdHeap>(
-//                    graph,
-//                    {u},
-//                    border,
-//                    CellInnerTransitions);
-//                for (auto v : border) {
-//                    if (u != v && distances.at(v) < Dijkstra::INF) {
-//                        cellEdges.emplace_back(u, v, distances.at(v));
-//                    }
-//                }
-//            }
-//        }
-//        // async:WaitAll
-//        for (auto&& [cellId, cellEdges] : levelCellEdges) {
-//            for (auto [u, v, distance] : cellEdges) {
-////                graph.AddVertex(u, level);
-////                graph.AddVertex(v, level);
-//                graph.AddEdge(u, v, level, EdgeProperty{distance});
-//            }
-//        }
-//    }
-//    return graph;
-//}
+    const Topology& topology);

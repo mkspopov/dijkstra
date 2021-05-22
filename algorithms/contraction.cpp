@@ -3,9 +3,10 @@
 #include "thread_pool.h"
 
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 
-IntermediateGraph::IntermediateGraph(WGraph graph, CompactTopology topology)
+IntermediateGraph::IntermediateGraph(WGraph graph, Topology topology)
     : builder_(std::move(graph))
     , topology_(std::move(topology))
     , vertices_(topology_.LevelsCount())
@@ -100,14 +101,6 @@ void TraverseChildren(
     }
 }
 
-namespace C {
-    struct Edge {
-        VertexId from;
-        VertexId to;
-        Weight weight;
-    };
-}
-
 class ThreadLocalDijkstra {
 public:
     void Init(const WGraph& originalGraph, const IntermediateGraph& graph, LevelId level) {
@@ -145,23 +138,24 @@ private:
 
 thread_local ThreadLocalDijkstra threadLocalDijkstra;
 
-IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTopology& topology) {
+IntermediateGraph MultithreadContraction(const WGraph& originalGraph, const Topology& topology) {
     IntermediateGraph graph(originalGraph, topology);
 
     ASSERT(topology.LevelsCount() > 1);
-    const LevelId lastLevel = topology.LevelsCount() - 1;
+    const LevelId levels = topology.LevelsCount();
     std::unordered_map<VertexId, std::vector<VertexId>> children;
-    std::vector<std::unordered_set<VertexId>> cellsByLevel(topology.LevelsCount());
+    std::vector<std::unordered_set<VertexId>> cellsByLevel(levels);
     for (const auto [child, parent] : Enumerate(topology.parents_)) {
         children[parent].push_back(child);
         cellsByLevel.at(topology.Level(parent)).insert(parent);
     }
 
     const auto numThreads = std::thread::hardware_concurrency();
-//    const auto numThreads = 1;
     ThreadPool threadPool(numThreads);
 
     auto reversedOriginalGraph = originalGraph.Reversed();
+
+    std::vector<C::LevelStats> stats(levels);
 
     auto contractCell = [&](
         VertexId cellId,
@@ -170,6 +164,10 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
         std::vector<C::Edge>& cut,
         std::vector<C::Edge>& inner)
     {
+        ASSERT(border.empty());
+        ASSERT(cut.empty());
+        ASSERT(inner.empty());
+
         TraverseChildren(cellId, children, [&](VertexId child) {
             for (auto edgeId : graph.GetOutgoingEdges(child, level - 1)) {
                 auto to = graph.GetTarget(edgeId);
@@ -191,7 +189,6 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
             }
         });
 
-
         for (auto from : border) {
             threadLocalDijkstra.Init(originalGraph, graph, level);
             threadLocalDijkstra.Run(
@@ -206,44 +203,8 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
     };
 
     LevelId singleThreadLevel = 0;
-//    LevelId singleThreadLevel = 4;
-//    for (LevelId level = 1; level <= std::min(singleThreadLevel, lastLevel); ++level) {
-//        std::unordered_map<VertexId, std::unordered_set<VertexId>> borders;
-//        for (auto cellId : cellsByLevel.at(level)) {
-//            TraverseChildren(cellId, children, [&](VertexId child) {
-//                for (auto edgeId : graph.GetOutgoingEdges(child, level - 1)) {
-//                    auto to = graph.GetTarget(edgeId);
-//                    if (cellId != topology.GetCellId(to, level)) {
-//                        borders.at(cellId).insert(child);
-//                        cut.push_back({child, to, originalGraph.GetEdgeProperties(edgeId).weight});
-//                    }
-//                }
-//                for (auto edgeId : reversedOriginalGraph.GetOutgoingEdges(child)) {
-//                    auto to = reversedOriginalGraph.GetTarget(edgeId);
-//                    if (cellId != topology.GetCellId(to, level)) {
-//                        borders.at(cellId).insert(child);
-//                        // This edge will be added later in the other component.
-//                    }
-//                }
-//
-//                for (auto from : border) {
-//                    auto distances = MultilevelDijkstra<StdHeap>(
-//                        graph,
-//                        {from},
-//                        {from},  // TODO: remove it, use Finish::ALL.
-//                        CellInnerTransitionsS(topology.GetCellId(from, level), level),
-//                        GetTrivialVisitor());
-//                    for (auto to : border) {
-//                        if (from != to && distances.at(to) < Dijkstra::INF) {
-//                            inner.push_back({from, to, distances.at(to)});
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//    }
 
-    for (LevelId level = singleThreadLevel + 1; level <= lastLevel; ++level) {
+    for (LevelId level = singleThreadLevel + 1; level < levels; ++level) {
         Log() << "Contracting level" << static_cast<int>(level) << "...";
         Timer timer;
         auto numCells = cellsByLevel.at(level).size();
@@ -266,7 +227,8 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
 
         threadPool.WaitAll();
         for (auto& task : tasks) {
-            ASSERT(task->IsCompletedOrThrow());
+            bool completed = task->IsCompletedOrThrow();
+            ASSERT(completed);
         }
 
         for (auto cellId : cellsByLevel.at(level)) {
@@ -276,6 +238,16 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
             for (auto [from, to, weight] : innerEdges.at(cellId)) {
                 graph.AddEdge(from, to, level, EdgeProperty{weight});
             }
+
+            stats.at(level) += C::LevelStats{
+                C::LevelStats::CellStats{
+                    1,
+                    static_cast<VertexId>(children.at(cellId).size()),
+                    static_cast<VertexId>(children.at(cellId).size()),
+                },
+                static_cast<EdgeId>(cutEdges.at(cellId).size()),
+                static_cast<EdgeId>(innerEdges.at(cellId).size()),
+            };
         }
 
         Log() << "level" << static_cast<int>(level) << "contracted in"
@@ -283,5 +255,32 @@ IntermediateGraph SimpleContraction(const WGraph& originalGraph, const CompactTo
         Log() << "vertices:" << graph.vertices_.at(level).size();
     }
 
+    stats.at(0) = C::LevelStats{
+        C::LevelStats::CellStats{
+            originalGraph.VerticesCount(),
+            1,
+            1,
+        },
+        originalGraph.EdgesCount(),
+        0,
+    };
+
+    Log() << stats;
+    graph.stats_ = std::move(stats);
+
     return graph;
+}
+
+std::ostream& operator<<(std::ostream& os, const C::LevelStats::CellStats& stats) {
+    os << "count " << stats.count << ", ";
+    os << "minSize " << stats.minSize << ", ";
+    os << "maxSize " << stats.maxSize;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const C::LevelStats& stats) {
+    os << "cellStats: " << stats.cellStats << "; ";
+    os << "cutEdges " << stats.cutEdges << "; ";
+    os << "innerEdges " << stats.innerEdges << std::endl;
+    return os;
 }

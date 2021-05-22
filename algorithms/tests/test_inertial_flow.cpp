@@ -27,7 +27,7 @@ void TestMinCut() {
 
 void TestSmallInertialFlow() {
     const auto graph = BuildTestCoordGraph();
-    auto topology = BuildTopologyInertialFlow(graph, 2, 0.4);
+    auto topology = BuildInertialFlow(graph, 2, 0.4);
 
     ASSERT_EQUAL(topology.parents_, std::vector<VertexId>({6, 7, 9, 9, 8, 7, 10, 10, 11, 11, 12, 12}));
     ASSERT_EQUAL(topology.Level(0), 0);
@@ -45,9 +45,17 @@ void TestSmallInertialFlow() {
     ASSERT_EQUAL(topology.Level(12), 3);
 }
 
+void TestSmallInertialFlowSteps() {
+    const auto graph = BuildTestCoordGraph();
+    auto topology = BuildInertialFlow(graph, 3, 0.4, 2);
+
+    // TODO: add tests.
+}
+
 int main() {
     Log() << "Running tests ...\n";
     RUN_TEST(TestMinCut);
     RUN_TEST(TestSmallInertialFlow);
+//    RUN_TEST(TestSmallInertialFlowSteps);
     Log() << "Done tests.\n";
 }

@@ -31,6 +31,10 @@ public:
         return algorithm_.GetName();
     }
 
+    auto GetStats() const {
+        return algorithm_.GetStats();
+    }
+
 private:
     Algorithm algorithm_;
 };

@@ -4,27 +4,60 @@
 #include "topology_builders.h"
 #include "utils.h"
 
-#include "../from_boost/test_utils.h"
+#include "../from_boost/utils_for_tests.h"
 
 #include <execution>
 #include <filesystem>
 #include <fstream>
 
-static constexpr VertexId NUM_VERTICES = 100;
-constexpr int TESTS = 5;
 using TTime = double;
 
-static std::optional<Weight> globalWeight;
-void VerifyWeight(Weight weight) {
-    if (globalWeight) {
-        ASSERT(globalWeight == weight);
-    } else {
-        globalWeight = weight;
-    }
-}
+struct TestInstance {
+    void Init(int argc, char* argv[]) {
+        if (argc > 1) {
+            GRAPHS_FOLDER = argv[1];
+        }
+        if (argc > 2) {
+            NUM_VERTICES = std::strtoul(argv[2], nullptr, 10);
+        }
+        if (argc > 3) {
+            STATS_FOLDER = argv[3];
+        }
+        if (argc > 4) {
+            TESTS = std::strtol(argv[4], nullptr, 10);
+        }
 
-constexpr inline static std::string_view STATS_FOLDER = "stats";
-constexpr inline static std::string_view GRAPHS_FOLDER = "dumped_graphs";
+        Log() << "GRAPHS_FOLDER" << GRAPHS_FOLDER;
+        Log() << "NUM_VERTICES" << NUM_VERTICES;
+        Log() << "STATS_FOLDER" << STATS_FOLDER;
+        Log() << "TESTS" << TESTS << '\n';
+    }
+
+    void VerifyWeight(Weight weight) {
+        if (globalWeight) {
+            if (*globalWeight != weight) {
+                throw std::runtime_error("Bug in VerifyWeight!");
+            }
+        } else {
+            globalWeight = weight;
+        }
+    }
+
+    std::optional<Weight> globalWeight;
+
+    std::filesystem::path GRAPHS_FOLDER = "../../graphs/";
+    VertexId NUM_VERTICES = 5;
+    std::filesystem::path STATS_FOLDER = "stats";
+    int TESTS = 5;
+
+    static constexpr inline std::string_view INERTIAL_FLOW = "inertial_flow";
+    static constexpr inline std::string_view SIMPLE_PARTITION = "simple";
+};
+
+auto& TI() {
+    static TestInstance ti;
+    return ti;
+}
 
 namespace StatType {
 constexpr inline static std::string_view AVERAGE = "AVERAGE";
@@ -69,56 +102,90 @@ StatTimer CalcTotal(R&& range) {
     return statTimer;
 }
 
+static std::filesystem::path currentGraphName;
+static CoordGraph coordGraph;
+static WGraph distanceGraph;
+
+void Preload(std::filesystem::path graphPath) {
+    currentGraphName = graphPath.filename();
+    distanceGraph = GraphDeserializer(graphPath).ReadDistances();
+    Log() << "Read testGraph"
+          << ", vertices:" << distanceGraph.VerticesCount()
+          << ", edges:" << distanceGraph.EdgesCount();
+
+    coordGraph = GraphDeserializer(graphPath).ReadCoordinates();
+    Log() << "Read testGraph"
+          << ", vertices:" << coordGraph.VerticesCount()
+          << ", edges:" << coordGraph.EdgesCount();
+}
+
 template <typename Algorithm>
-void DumpStats(const Stats& stats) {
-    std::filesystem::create_directory(STATS_FOLDER);
-    std::filesystem::path path(STATS_FOLDER);
+void DumpStats(const Stats& stats, Dijkstra::Stats& dijkstraStats) {
+    std::filesystem::create_directory(TI().STATS_FOLDER);
+    std::filesystem::path path(TI().STATS_FOLDER);
     std::stringstream ss;
     std::time_t result = std::time(nullptr);
-    ss << std::asctime(std::localtime(&result)) << "_" << Algorithm::GetName();
+    std::string time = std::asctime(std::localtime(&result));
+    time.pop_back();
+    ss << time << "_" << currentGraphName << "_" << Algorithm::GetName();
     path /= ss.str();
     path.replace_extension(".txt");
     std::ofstream out(path);
     ASSERT(out.is_open());
 
     Log() << stats;
-    out << stats;
+    Log() << dijkstraStats / TI().TESTS;
+    out << stats << std::endl;
+    auto numQueries = TI().TESTS * TI().NUM_VERTICES * TI().NUM_VERTICES;
+    out << dijkstraStats / numQueries << std::endl;
+}
+
+const auto& GetCoordGraph() {
+    return coordGraph;
+}
+
+const auto& GetGraph() {
+    return distanceGraph;
 }
 
 template <typename Algorithm>
 void SingleSourceSingleTarget(
     const std::vector<VertexId>& sources,
     const std::vector<VertexId>& targets,
-    Stats& stats)
+    Stats& stats,
+    Dijkstra::Stats& dijkstraStats)
 {
     Weight total = 0;
 
-    ShortestPathAlgorithm<Algorithm> algorithm(TestGraph());
+    ShortestPathAlgorithm<Algorithm> algorithm(GetGraph());
     algorithm.Preprocess();
-
-    std::vector<TTime> timers(sources.size() * targets.size());
-    auto timerIt = timers.begin();
-    for (auto source : sources) {
-        for (auto target : targets) {
-            Timer timer;
-            auto weight = algorithm.FindShortestPathWeight(source, target);
-            *timerIt++ = timer.ElapsedMs();
-            total += weight;
+    for (int test = 0; test < TI().TESTS; ++test) {
+        std::vector<TTime> timers(sources.size() * targets.size());
+        auto timerIt = timers.begin();
+        for (auto source : sources) {
+            for (auto target : targets) {
+                Timer timer;
+                auto weight = algorithm.FindShortestPathWeight(source, target);
+                *timerIt++ = timer.ElapsedMs();
+                total += weight;
+            }
         }
+
+        stats.algoName = algorithm.GetName();
+        stats.Add(CalcTotal(timers));
+        stats.Add(CalcAverage(timers));
+        dijkstraStats += algorithm.GetStats();
+        Log() << stats;
     }
 
-    stats.algoName = algorithm.GetName();
-    stats.Add(CalcTotal(timers));
-    stats.Add(CalcAverage(timers));
-    Log() << stats;
-
-    VerifyWeight(total);
+    TI().VerifyWeight(total);
 }
 
+template <class TopologyBuilder>
 IntermediateGraph PreprocessGraph(
     const WGraph& originalGraph,
     const std::filesystem::path& path,
-    CompactTopology topology)
+    const TopologyBuilder& topologyBuilder)
 {
     IntermediateGraph graph;
     if (!path.empty()) {
@@ -129,9 +196,9 @@ IntermediateGraph PreprocessGraph(
             return graph;
         }
     }
-    graph = SimpleContraction(
+    graph = MultithreadContraction(
         originalGraph,
-        topology);
+        topologyBuilder());
     std::ofstream out(path, std::ios::binary);
     if (out.is_open()) {
         Log() << "Dumping to" << path;
@@ -150,11 +217,16 @@ struct MLDSimple : public MultilevelDijkstraAlgorithm {
     }
 
     void Preprocess() {
-        std::filesystem::path path = GRAPHS_FOLDER;
-        path /= "multilevel_test_graph.graph";
+        std::filesystem::path path = TI().GRAPHS_FOLDER;
+        path /= "dumped";
+        path /= TI().SIMPLE_PARTITION;
+        std::filesystem::create_directories(path);
+        path /= currentGraphName;
         const LevelId levels = 7;
         MultilevelDijkstraAlgorithm::Preprocess([&]() {
-            return PreprocessGraph(TestGraph(), path, BuildSimplyTopology(TestGraph(), levels));
+            return PreprocessGraph(GetGraph(), path, [&]() {
+                return BuildSimplyTopology(GetGraph(), levels);
+            });
         });
     }
 };
@@ -169,40 +241,104 @@ struct MLDInertialFlow : public MultilevelDijkstraAlgorithm {
     }
 
     void Preprocess() {
-        std::filesystem::path path = GRAPHS_FOLDER;
-        path /= "multilevel_test_graph_inertial_flow.graph";
+        std::filesystem::path path = TI().GRAPHS_FOLDER;
+        path /= "dumped";
+        path /= TI().INERTIAL_FLOW;
+        std::filesystem::create_directories(path);
+        path /= currentGraphName;
         const LevelId levels = 7;
         MultilevelDijkstraAlgorithm::Preprocess([&]() {
-            return PreprocessGraph(TestGraph(), path, BuildTopologyInertialFlow(TestCoordGraph(), levels));
+            return PreprocessGraph(GetGraph(), path, [&]() {
+                return BuildInertialFlow(GetCoordGraph(), levels);
+            });
         });
     }
 };
 
-using ALGORITHMS = TypeArray<BidirectionalDijkstra, MLDSimple, MLDInertialFlow>;
+using ALGORITHMS = TypeArray<Dijkstra, BidirectionalDijkstra, MLDSimple, MLDInertialFlow>;
 
-void Preload() {
-    (void) TestCoordGraph();
-    (void) TestGraph();
+void PerfQueries() {
+    for (const auto& entry : std::filesystem::directory_iterator(TI().GRAPHS_FOLDER)) {
+        Log() << entry;
+        auto graphPath = std::filesystem::path(entry);
+        if (graphPath.extension() == ".gr") {
+            Log() << "Preloading ...\n";
+            Preload(graphPath);
+
+            auto sources = GenerateRandomVertices(TI().NUM_VERTICES, GetGraph().VerticesCount());
+            auto targets = GenerateRandomVertices(TI().NUM_VERTICES, GetGraph().VerticesCount());
+
+            std::array<Stats, ALGORITHMS::size> stats;
+            std::array<Dijkstra::Stats, ALGORITHMS::size> dijkstraStats;
+
+            constexpr_for<0, ALGORITHMS::size>([&] (auto i) {
+                SingleSourceSingleTarget<ALGORITHMS::get<i>>(
+                    sources,
+                    targets,
+                    std::get<i>(stats),
+                    std::get<i>(dijkstraStats));
+            });
+            Log() << "Final stats:";
+            constexpr_for<0, ALGORITHMS::size>([&] (auto i) {
+                DumpStats<ALGORITHMS::get<i>>(std::get<i>(stats), std::get<i>(dijkstraStats));
+            });
+
+            TI().globalWeight = std::nullopt;
+        }
+    }
 }
 
-int main() {
-    Log() << "Preloading ...\n";
-    Preload();
+//template <class Graph>
+void CountCutEdges(const IntermediateGraph& graph, const std::filesystem::path& path) {
+    std::filesystem::create_directories(path.parent_path());
+    std::ofstream file(path);
+    ASSERT(file.is_open());
+    file << graph.stats_;
+}
+
+void PerfLevels() {
+    std::filesystem::path statsDir = TI().STATS_FOLDER;
+    statsDir /= "cut_edges";
+    for (const auto& entry : std::filesystem::directory_iterator(TI().GRAPHS_FOLDER)) {
+        Log() << entry;
+        auto graphPath = std::filesystem::path(entry);
+        if (graphPath.extension() == ".gr") {
+            Log() << "Preloading ...\n";
+            Preload(graphPath);
+            constexpr LevelId levels = 7;
+            std::filesystem::path dumpDir = TI().GRAPHS_FOLDER;
+            dumpDir /= "dumped";
+
+            {
+                auto path = dumpDir / TI().SIMPLE_PARTITION;
+                std::filesystem::create_directories(path);
+                path /= currentGraphName;
+                auto graph = PreprocessGraph(GetGraph(), path, [&]() {
+                    return BuildSimplyTopology(GetGraph(), levels);
+                });
+                CountCutEdges(graph, statsDir / TI().SIMPLE_PARTITION / currentGraphName);
+            }
+
+            {
+                auto path = dumpDir / TI().INERTIAL_FLOW;
+                std::filesystem::create_directories(path);
+                path /= currentGraphName;
+                auto graph = PreprocessGraph(GetGraph(), path, [&]() {
+                    return BuildInertialFlow(GetCoordGraph(), levels);
+                });
+                CountCutEdges(graph, statsDir / TI().INERTIAL_FLOW / currentGraphName);
+            }
+        }
+    }
+}
+
+int main(int argc, char* argv[]) {
+    TI().Init(argc, argv);
 
     Log() << "Running tests ...\n";
 
-    auto sources = GenerateRandomVertices(NUM_VERTICES, TestGraph().VerticesCount());
-    auto targets = GenerateRandomVertices(NUM_VERTICES, TestGraph().VerticesCount());
-
-    std::array<Stats, ALGORITHMS::size> stats;
-    constexpr_for<0, ALGORITHMS::size>([&] (auto i) {
-        for (int test = 0; test < TESTS; ++test) {
-            SingleSourceSingleTarget<ALGORITHMS::get<i>>(sources, targets, std::get<i>(stats));
-        }
-    });
-    constexpr_for<0, ALGORITHMS::size>([&] (auto i) {
-        DumpStats<ALGORITHMS::get<i>>(std::get<i>(stats));
-    });
+    PerfQueries();
+//    PerfLevels();
 
     Log() << "Done tests.\n";
 }

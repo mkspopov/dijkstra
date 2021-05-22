@@ -13,14 +13,14 @@ function(AddTest name)
     add_test(${name} ${name})
 endfunction()
 
-AddTest(stress_test_dijkstra)
-AddTest(test_inertial_flow)
-AddTest(test_mlg_dump_and_load)
-AddTest(test_multilevel_graph)
-AddTest(test_multilevel_dijkstra)
 AddTest(test_topology_builders)
+AddTest(test_multilevel_graph)
+AddTest(test_mlg_dump_and_load)
+AddTest(test_multilevel_dijkstra)
+AddTest(test_inertial_flow)
+AddTest(stress_test_dijkstra)
 
-target_link_libraries(stress_test_dijkstra test_utils)
+target_link_libraries(stress_test_dijkstra utils_for_tests)
 
 set_tests_properties(
     stress_test_dijkstra
