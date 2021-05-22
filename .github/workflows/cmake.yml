@@ -20,11 +20,24 @@ jobs:
 
     - name: Create Build Environment
       run: |
+        cmake -E make_directory ${{github.workspace}}/debug_build
         cmake -E make_directory ${{github.workspace}}/build
         cmake -E make_directory ${{github.workspace}}/asan_build
         cmake -E make_directory ${{github.workspace}}/tsan_build
 
-    - name: Build
+    - name: DebugBuild
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: |
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug
+        cmake --build . -j 8
+    - name: UnitTest
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      timeout-minutes: 1
+      run: ctest -C Release -R "^test" --verbose
+
+    - name: ReleaseBuild
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: |
@@ -69,8 +82,3 @@ jobs:
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^test" --verbose
-#    - name: StressTest
-#      working-directory: ${{github.workspace}}/tsan_build
-#      shell: bash
-#      timeout-minutes: 1
-#      run: ctest -C Release -R "^stress_test" --verbose

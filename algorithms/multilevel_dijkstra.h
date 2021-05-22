@@ -2,7 +2,6 @@
 
 #include "contraction.h"
 #include "dijkstra.h"
-#include "multilevel_graph.h"
 #include "visitor.h"
 
 /*

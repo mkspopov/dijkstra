@@ -1,6 +1,7 @@
 #pragma once
 
-#include "multilevel_graph.h"
+#include "graph.h"
+#include "topology.h"
 
 #include <filesystem>
 #include <fstream>
