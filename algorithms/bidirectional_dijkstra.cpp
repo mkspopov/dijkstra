@@ -6,8 +6,6 @@ BidirectionalDijkstra::BidirectionalDijkstra(const WGraph& graph)
     , forward_(graph_)
     , backward_(reversedGraph_)
 {
-    forward_.Preprocess();
-    backward_.Preprocess();
 }
 
 Weight BidirectionalDijkstra::FindShortestPathWeight(VertexId source, VertexId target) {
@@ -67,4 +65,6 @@ Dijkstra::Stats BidirectionalDijkstra::GetStats() const {
 }
 
 void BidirectionalDijkstra::Preprocess() {
+    forward_.Preprocess();
+    backward_.Preprocess();
 }

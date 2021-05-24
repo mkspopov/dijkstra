@@ -48,11 +48,11 @@ jobs:
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^test" --verbose
-    - name: StressTest
-      working-directory: ${{github.workspace}}/build
-      shell: bash
-      timeout-minutes: 5
-      run: ctest -C Release -R "^stress_test" --verbose
+#    - name: StressTest
+#      working-directory: ${{github.workspace}}/build
+#      shell: bash
+#      timeout-minutes: 5
+#      run: ctest -C Release -R "^stress_test" --verbose
 
     - name: AsanBuild
       working-directory: ${{github.workspace}}/asan_build
@@ -65,11 +65,11 @@ jobs:
       shell: bash
       timeout-minutes: 1
       run: ctest -C Release -R "^test" --verbose
-    - name: StressTest
-      working-directory: ${{github.workspace}}/asan_build
-      shell: bash
-      timeout-minutes: 1
-      run: ctest -C Release -R "^stress_test" --verbose
+#    - name: StressTest
+#      working-directory: ${{github.workspace}}/asan_build
+#      shell: bash
+#      timeout-minutes: 1
+#      run: ctest -C Release -R "^stress_test" --verbose
 
     - name: TsanBuild
       working-directory: ${{github.workspace}}/tsan_build

@@ -133,15 +133,15 @@ private:
 };
 
 Topology BuildInertialFlow(const CoordGraph& graph, LevelId levels, double coef, int steps) {
-    auto states = MakePartition<XCoordComp>(graph, levels, coef, steps);
+    auto partition = MakePartition<XCoordComp>(graph, levels, coef, steps);
 
     Topology topology;
     topology.sizes_ = {0, graph.VerticesCount()};
     std::vector<std::vector<VertexId>> cells(levels * steps, std::vector<VertexId>(graph.VerticesCount()));
-    for (LevelId level : Range(0ul, states.size())) {
-        size_t index = states.size() - level - 1;
+    for (LevelId level : Range(0ul, partition.size())) {
+        size_t index = partition.size() - level - 1;
         std::unordered_set<VertexId> newCells;
-        for (auto [vertex, cellId] : Enumerate(states.at(index).toGraphId)) {
+        for (auto [vertex, cellId] : Enumerate(partition.at(index).toGraphId)) {
             auto parentId = cellId + topology.sizes_.back();
             cells.at(level).at(vertex) = parentId;
             newCells.insert(parentId);

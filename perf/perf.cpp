@@ -102,7 +102,7 @@ StatTimer CalcTotal(R&& range) {
     return statTimer;
 }
 
-static std::filesystem::path currentGraphName;
+static std::string currentGraphName;
 static CoordGraph coordGraph;
 static WGraph distanceGraph;
 
@@ -124,12 +124,8 @@ void DumpStats(const Stats& stats, Dijkstra::Stats& dijkstraStats) {
     std::filesystem::create_directory(TI().STATS_FOLDER);
     std::filesystem::path path(TI().STATS_FOLDER);
     std::stringstream ss;
-    std::time_t result = std::time(nullptr);
-    std::string time = std::asctime(std::localtime(&result));
-    time.pop_back();
-    ss << time << "_" << currentGraphName << "_" << Algorithm::GetName();
+    ss << Algorithm::GetName() << "_" << currentGraphName << ".txt";
     path /= ss.str();
-    path.replace_extension(".txt");
     std::ofstream out(path);
     ASSERT(out.is_open());
 

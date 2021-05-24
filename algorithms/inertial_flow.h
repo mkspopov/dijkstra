@@ -21,8 +21,7 @@ struct MappingToOriginalGraph {
 };
 
 template <class Comp>
-auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef, int steps) {
-    (void) steps;
+auto MakePartition(const CoordGraph& originalGraph, LevelId levels, double coef, LevelId steps) {
     auto iota = Range(0u, originalGraph.VerticesCount());
     std::vector<MappingToOriginalGraph> graphs{{originalGraph, std::vector(iota.begin(), iota.end())}};
     std::vector<State> states;
