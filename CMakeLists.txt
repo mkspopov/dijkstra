@@ -34,11 +34,9 @@ add_executable(my my.cpp)
 
 set(CMAKE_CXX_FLAGS_ASAN
     "-fsanitize=address,undefined -fno-optimize-sibling-calls -fsanitize-address-use-after-scope -fno-omit-frame-pointer -g -O1"
-    FORCE
 )
 set(CMAKE_CXX_FLAGS_TSAN
     "-fsanitize=thread -g -O1"
-    FORCE
 )
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
